@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>UI Sound Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+    }
+    .button-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin: 20px 0;
+    }
+    button {
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .status {
+      margin-top: 20px;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    .success {
+      background-color: #e6ffe6;
+      color: #006600;
+    }
+    .error {
+      background-color: #ffe6e6;
+      color: #660000;
+    }
+    .preview {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>UI Sound Generator</h1>
+  <p>Click each button to generate and preview the corresponding sound. The sound will be automatically saved as an MP3 file.</p>
+  
+  <div class="button-grid">
+    <button onclick="handleSound('click')">Generate Click Sound</button>
+    <button onclick="handleSound('hover')">Generate Hover Sound</button>
+    <button onclick="handleSound('start')">Generate Start Sound</button>
+    <button onclick="handleSound('back')">Generate Back Sound</button>
+    <button onclick="handleSound('select')">Generate Select Sound</button>
+    <button onclick="handleSound('ending')">Generate Ending Sound</button>
+  </div>
+
+  <button onclick="generateAllSounds()">Generate All Sounds</button>
+
+  <div id="status" class="status"></div>
+
+  <div class="preview">
+    <h3>Preview Generated Sounds:</h3>
+    <div id="previewArea"></div>
+  </div>
+
+  <script>
+    const showStatus = (message, isError = false) => {
+      const status = document.getElementById('status')
+      status.textContent = message
+      status.className = `status ${isError ? 'error' : 'success'}`
+    }
+
+    const addPreview = (type, url) => {
+      const previewArea = document.getElementById('previewArea')
+      const container = document.createElement('div')
+      container.style.marginBottom = '10px'
+      
+      const label = document.createElement('span')
+      label.textContent = `${type}: `
+      
+      const audio = document.createElement('audio')
+      audio.controls = true
+      audio.src = url
+      
+      container.appendChild(label)
+      container.appendChild(audio)
+      previewArea.appendChild(container)
+    }
+
+    const generateSound = async (type, options = {}) => {
+      try {
+        const {
+          frequency = type === 'click' ? 800 :
+                     type === 'hover' ? 600 :
+                     type === 'start' ? 440 :
+                     type === 'back' ? 300 :
+                     type === 'select' ? 700 :
+                     type === 'ending' ? 520 : 440,
+          duration = type === 'click' ? 0.1 :
+                    type === 'hover' ? 0.05 :
+                    type === 'start' ? 0.3 :
+                    type === 'back' ? 0.15 :
+                    type === 'select' ? 0.15 :
+                    type === 'ending' ? 0.5 : 0.2,
+          waveType = type === 'start' || type === 'ending' ? 'sine' : 'square',
+          volume = type === 'hover' ? 0.2 :
+                  type === 'ending' ? 0.4 : 0.3
+        } = options
+
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+        const offlineContext = new OfflineAudioContext(1, audioContext.sampleRate * duration, audioContext.sampleRate)
+        
+        const oscillator = offlineContext.createOscillator()
+        const gainNode = offlineContext.createGain()
+
+        oscillator.type = waveType
+        oscillator.frequency.setValueAtTime(frequency, 0)
+        
+        gainNode.gain.setValueAtTime(volume, 0)
+        gainNode.gain.exponentialRampToValueAtTime(0.01, duration)
+
+        oscillator.connect(gainNode)
+        gainNode.connect(offlineContext.destination)
+
+        oscillator.start()
+        oscillator.stop(duration)
+
+        const renderedBuffer = await offlineContext.startRendering()
+        
+        const wavBuffer = audioBufferToWav(renderedBuffer)
+        const blob = new Blob([wavBuffer], { type: 'audio/wav' })
+        const url = URL.createObjectURL(blob)
+        
+        // Add preview
+        addPreview(type, url)
+
+        // Trigger download
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `${type}.mp3`
+        link.click()
+
+        showStatus(`Successfully generated ${type} sound!`)
+        return true
+      } catch (error) {
+        console.error(`Error generating ${type} sound:`, error)
+        showStatus(`Error generating ${type} sound: ${error.message}`, true)
+        return false
+      }
+    }
+
+    const audioBufferToWav = (buffer) => {
+      const numberOfChannels = buffer.numberOfChannels
+      const length = buffer.length
+      const sampleRate = buffer.sampleRate
+      const wavBuffer = new ArrayBuffer(44 + length * 2)
+      const view = new DataView(wavBuffer)
+
+      const writeString = (view, offset, string) => {
+        for (let i = 0; i < string.length; i++) {
+          view.setUint8(offset + i, string.charCodeAt(i))
+        }
+      }
+
+      writeString(view, 0, 'RIFF')
+      view.setUint32(4, 36 + length * 2, true)
+      writeString(view, 8, 'WAVE')
+      writeString(view, 12, 'fmt ')
+      view.setUint32(16, 16, true)
+      view.setUint16(20, 1, true)
+      view.setUint16(22, numberOfChannels, true)
+      view.setUint32(24, sampleRate, true)
+      view.setUint32(28, sampleRate * numberOfChannels * 2, true)
+      view.setUint16(32, numberOfChannels * 2, true)
+      view.setUint16(34, 16, true)
+      writeString(view, 36, 'data')
+      view.setUint32(40, length * 2, true)
+
+      const channelData = buffer.getChannelData(0)
+      let offset = 44
+      for (let i = 0; i < length; i++) {
+        const sample = Math.max(-1, Math.min(1, channelData[i]))
+        view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true)
+        offset += 2
+      }
+
+      return wavBuffer
+    }
+
+    const handleSound = async (type) => {
+      document.getElementById('previewArea').innerHTML = ''
+      await generateSound(type)
+    }
+
+    const generateAllSounds = async () => {
+      document.getElementById('previewArea').innerHTML = ''
+      showStatus('Generating all sounds...')
+      
+      const types = ['click', 'hover', 'start', 'back', 'select', 'ending']
+      let success = true
+      
+      for (const type of types) {
+        const result = await generateSound(type)
+        if (!result) {
+          success = false
+          break
+        }
+      }
+
+      if (success) {
+        showStatus('Successfully generated all sounds!')
+      }
+    }
+  </script>
+</body>
+</html> 

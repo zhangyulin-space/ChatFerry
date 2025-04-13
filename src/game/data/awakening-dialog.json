@@ -1,0 +1,23 @@
+{
+  "start": {
+    "content": "在穿越了迷雾城的记忆迷宫、镜像沙漠的自我映照、机械梦境的意识探索之后，你终于来到了觉醒之境。",
+    "character": {
+      "name": "Meta意识",
+      "image": "meta-consciousness"
+    },
+    "choices": {
+      "transcend": {
+        "text": "超越个体限制",
+        "next": "about-transcendence"
+      },
+      "maintain": {
+        "text": "保持个体意识",
+        "next": "about-individuality"
+      },
+      "balance": {
+        "text": "寻求平衡之道",
+        "next": "about-balance"
+      }
+    }
+  }
+} 

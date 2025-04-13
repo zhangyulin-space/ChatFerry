@@ -1,0 +1,45 @@
+.loadingScreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.content {
+  text-align: center;
+  color: #fff;
+}
+
+.title {
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  font-weight: 300;
+  letter-spacing: 0.2em;
+}
+
+.progressBar {
+  width: 300px;
+  height: 4px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 0 auto;
+}
+
+.progressFill {
+  height: 100%;
+  background-color: #fff;
+  transition: width 0.3s ease-out;
+}
+
+.percentage {
+  margin-top: 1rem;
+  font-size: 1rem;
+  opacity: 0.7;
+} 

@@ -1,0 +1,19 @@
+{
+  "start": {
+    "content": "欢迎来到迷雾城。这里终年被一种神秘的迷雾笼罩，它不仅遮蔽了视线，似乎还吞噬着人们的记忆。",
+    "character": {
+      "name": "孤独的居民",
+      "image": "fog-city-resident"
+    },
+    "choices": {
+      "ask-about-fog": {
+        "text": "迷雾从何而来？",
+        "next": "about-fog"
+      },
+      "share-confusion": {
+        "text": "分享困惑",
+        "next": "share-feelings"
+      }
+    }
+  }
+} 

@@ -1,0 +1,19 @@
+{
+  "start": {
+    "content": "欢迎来到机械梦境，一个逻辑与感性交织的维度。我是C-21，这个空间的引导者。",
+    "character": {
+      "name": "C-21",
+      "image": "mechanical-guide"
+    },
+    "choices": {
+      "discuss-consciousness": {
+        "text": "讨论意识",
+        "next": "about-consciousness"
+      },
+      "explore-emotions": {
+        "text": "探索情感",
+        "next": "about-emotions"
+      }
+    }
+  }
+} 

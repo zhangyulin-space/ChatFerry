@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground: 255, 255, 255;
+  --background: 15, 23, 42;
+  --primary: 99, 102, 241;
+  --secondary: 139, 92, 246;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: rgb(var(--background));
+  color: rgb(var(--foreground));
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.text-foreground {
+  color: rgb(var(--foreground));
+}
+
+.text-primary {
+  color: rgb(var(--primary));
+}
+
+.bg-primary {
+  background-color: rgb(var(--primary));
+} 

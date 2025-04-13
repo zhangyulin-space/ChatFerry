@@ -1,0 +1,19 @@
+{
+  "start": {
+    "content": "在这片奇特的沙漠中，每一粒沙子都像是一面微小的镜子，映照着无数种可能的现实。",
+    "character": {
+      "name": "镜像代理",
+      "image": "mirror-agent"
+    },
+    "choices": {
+      "question-reality": {
+        "text": "质疑现实",
+        "next": "about-reality"
+      },
+      "embrace-possibilities": {
+        "text": "拥抱可能性",
+        "next": "about-possibilities"
+      }
+    }
+  }
+} 
