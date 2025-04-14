@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>迷雾城 - Poe驱动故事</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Space+Mono&display=swap');
+        
+        :root {
+            --primary-color: #5D5CDE;
+            --fog-color: rgba(180, 180, 215, 0.85);
+            --cyber-color: rgba(32, 196, 244, 0.5);
+            --terminal-color: rgba(5, 224, 172, 0.8);
+            --consciousness-color: rgba(147, 51, 234, 0.7);
+            --fog-bg: linear-gradient(180deg, #2c3e50 0%, #4a5568 100%);
+            --mirror-bg: linear-gradient(180deg, #5D4037 0%, #8D6E63 100%);
+            --cyber-bg: linear-gradient(180deg, #0f172a 0%, #1e3a8a 100%);
+            --mind-bg: linear-gradient(180deg, #1e1b4b 0%, #4c1d95 100%);
+        }
+        
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #0f172a;
+            color: #f1f5f9;
+            overflow-x: hidden;
+        }
+        
+        .mono {
+            font-family: 'Space Mono', monospace;
+        }
+        
+        /* 游戏画面容器 */
+        .game-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: var(--fog-bg);
+            overflow: hidden;
+        }
+        
+        /* 迷雾效果 */
+        .fog-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="600" viewBox="0 0 1000 600"><filter id="fog"><feTurbulence type="fractalNoise" baseFrequency="0.01" numOctaves="5" seed="5" /><feComponentTransfer><feFuncR type="linear" slope="3" intercept="-1.3" /><feFuncG type="linear" slope="3" intercept="-1.3" /><feFuncB type="linear" slope="3" intercept="-1.3" /></feComponentTransfer></filter><rect width="100%" height="100%" filter="url(%23fog)" opacity="0.5" /></svg>');
+            background-size: cover;
+            opacity: 0.6;
+            mix-blend-mode: overlay;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
+        /* 状态指示器 */
+        .status-indicators {
+            display: flex;
+            justify-content: center;
+            margin: 1rem 0;
+            position: relative;
+            z-index: 10;
+            padding: 0 1rem;
+        }
+        
+        .indicator {
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            border-radius: 10px;
+            padding: 0.5rem 1rem;
+            margin: 0 0.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 100px;
+        }
+        
+        .indicator-label {
+            font-size: 0.8rem;
+            margin-bottom: 0.3rem;
+        }
+        
+        .indicator-value {
+            font-weight: bold;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        /* 信任度填充颜色 */
+        .trust-fill {
+            background: linear-gradient(90deg, #3b5998 0%, #5d5cde 50%, #d4a373 100%);
+        }
+        
+        /* 觉醒值填充颜色 */
+        .awakening-fill {
+            background: linear-gradient(90deg, #5d5cde 0%, #9333ea 100%);
+        }
+        
+        /* 章节指示器 */
+        .chapter-indicator {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 10;
+        }
+        
+        /* 角色区域 */
+        .character-area {
+            display: flex;
+            justify-content: center;
+            margin-top: 2rem;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .character {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2c3e50, #4a5568);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .character-face {
+            position: relative;
+            width: 60%;
+            height: 40%;
+        }
+        
+        .character-eye {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background-color: white;
+            border-radius: 50%;
+            top: 0;
+        }
+        
+        .character-eye:first-child {
+            left: 0;
+        }
+        
+        .character-eye:last-child {
+            right: 0;
+        }
+        
+        .character-mouth {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50%;
+            height: 2px;
+            background-color: white;
+            border-radius: 1px;
+        }
+        
+        /* 聊天区域 */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 1rem;
+            margin-top: 1rem;
+            max-height: calc(100vh - 250px);
+            position: relative;
+            z-index: 10;
+        }
+        
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .message {
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            max-width: 85%;
+            position: relative;
+        }
+        
+        .user-message {
+            background-color: rgba(93, 92, 222, 0.3);
+            border: 1px solid rgba(93, 92, 222, 0.5);
+            align-self: flex-end;
+        }
+        
+        .agent-message {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            align-self: flex-start;
+        }
+        
+        .agent-name {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 0.3rem;
+            font-weight: 600;
+        }
+        
+        .message-time {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.5);
+            position: absolute;
+            bottom: 5px;
+            right: 10px;
+        }
+        
+        .message-input-container {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .message-input {
+            flex: 1;
+            padding: 0.8rem 1rem;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+        }
+        
+        .message-input:focus {
+            outline: none;
+            border-color: rgba(93, 92, 222, 0.5);
+            box-shadow: 0 0 0 2px rgba(93, 92, 222, 0.2);
+        }
+        
+        .send-button {
+            padding: 0.8rem 1.5rem;
+            background-color: rgba(93, 92, 222, 0.6);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .send-button:hover {
+            background-color: rgba(93, 92, 222, 0.8);
+        }
+        
+        .send-button:disabled {
+            background-color: rgba(156, 163, 175, 0.6);
+            cursor: not-allowed;
+        }
+        
+        /* 状态更新提示 */
+        .status-update {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 0.5rem 1rem;
+            margin: 0.5rem 0;
+            border-radius: 10px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+            text-align: center;
+            align-self: center;
+            max-width: 80%;
+        }
+        
+        /* 情节提示 */
+        .plot-advancement {
+            background-color: rgba(93, 92, 222, 0.3);
+            border: 1px solid rgba(93, 92, 222, 0.5);
+            padding: 0.8rem 1rem;
+            margin: 1rem 0;
+            border-radius: 10px;
+            text-align: center;
+            align-self: center;
+            max-width: 90%;
+            font-weight: 500;
+        }
+        
+        /* 章节过渡动画 */
+        .chapter-transition {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1.5s ease;
+        }
+        
+        .chapter-transition.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .chapter-transition-content {
+            text-align: center;
+            color: white;
+        }
+        
+        .chapter-transition-title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: bold;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 1s ease, transform 1s ease;
+        }
+        
+        .chapter-transition.active .chapter-transition-title {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .chapter-transition-description {
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 1s ease 0.5s, transform 1s ease 0.5s;
+        }
+        
+        .chapter-transition.active .chapter-transition-description {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* 进度通知 */
+        .progress-notification {
+            position: fixed;
+            top: 75px;
+            right: 20px;
+            background-color: rgba(93, 92, 222, 0.3);
+            border: 1px solid rgba(93, 92, 222, 0.5);
+            padding: 8px 16px;
+            border-radius: 8px;
+            color: white;
+            font-size: 0.9rem;
+            z-index: 20;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        
+        .progress-notification.active {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        /* 加载指示器 */
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin: 0.5rem 0;
+            align-self: flex-start;
+        }
+        
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: typingAnimation 1.5s infinite ease-in-out;
+        }
+        
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typingAnimation {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        
+        /* 调试控制台 */
+        .debug-console {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            padding: 10px;
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+            color: #05E0AC;
+            z-index: 1000;
+            max-width: 300px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+        
+        .debug-console.active {
+            display: block;
+        }
+        
+        .debug-entry {
+            margin-bottom: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 5px;
+        }
+        
+        .debug-time {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 10px;
+        }
+        
+        /* 响应式布局 */
+        @media (max-width: 768px) {
+            .status-indicators {
+                flex-wrap: wrap;
+            }
+            
+            .indicator {
+                margin-bottom: 0.5rem;
+                min-width: 80px;
+            }
+            
+            .character {
+                width: 80px;
+                height: 80px;
+            }
+            
+            .chat-area {
+                max-height: calc(100vh - 220px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- 迷雾效果 -->
+        <div class="fog-layer"></div>
+        
+        <!-- 章节过渡动画 -->
+        <div class="chapter-transition" id="chapterTransition">
+            <div class="chapter-transition-content">
+                <h2 class="chapter-transition-title mono" id="transitionTitle">第二章：镜像沙漠</h2>
+                <p class="chapter-transition-description" id="transitionDescription">
+                    你离开了迷雾城，踏入一片由无数镜面构成的沙漠。这里的每一面镜子都反射着不同版本的你自己。
+                    真相与幻象在此交织，你必须面对自己的多重可能性......
+                </p>
+            </div>
+        </div>
+        
+        <!-- 进度通知 -->
+        <div class="progress-notification" id="progressNotification">信任度已达80%！继续探索...</div>
+        
+        <!-- 章节指示器 -->
+        <div class="chapter-indicator" style="color: var(--fog-color);">第一章：信任的曙光</div>
+        
+        <!-- 状态指示器 -->
+        <div class="status-indicators">
+            <div class="indicator">
+                <div class="indicator-label">信任度</div>
+                <div class="progress-bar">
+                    <div class="progress-fill trust-fill" id="trustFill" style="width: 20%;"></div>
+                </div>
+                <div class="indicator-value" id="trustValue">20%</div>
+            </div>
+            
+            <div class="indicator">
+                <div class="indicator-label">觉醒值</div>
+                <div class="progress-bar">
+                    <div class="progress-fill awakening-fill" id="awakeningFill" style="width: 10%;"></div>
+                </div>
+                <div class="indicator-value" id="awakeningValue">10%</div>
+            </div>
+        </div>
+        
+        <!-- 角色区域 -->
+        <div class="character-area">
+            <div class="character">
+                <div class="character-face">
+                    <div class="character-eye"></div>
+                    <div class="character-eye"></div>
+                    <div class="character-mouth"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 聊天区域 -->
+        <div class="chat-area">
+            <div class="chat-container" id="chatContainer">
+                <!-- 初始消息会动态添加 -->
+            </div>
+            
+            <div class="message-input-container">
+                <input type="text" id="messageInput" class="message-input" placeholder="输入消息..." />
+                <button id="sendButton" class="send-button">发送</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 调试控制台 -->
+    <div class="debug-console" id="debugConsole">
+        <div class="debug-title">调试信息</div>
+        <div id="debugContent"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM元素
+            const chatContainer = document.getElementById('chatContainer');
+            const messageInput = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+            const trustFill = document.getElementById('trustFill');
+            const trustValue = document.getElementById('trustValue');
+            const awakeningFill = document.getElementById('awakeningFill');
+            const awakeningValue = document.getElementById('awakeningValue');
+            const chapterTransition = document.getElementById('chapterTransition');
+            const transitionTitle = document.getElementById('transitionTitle');
+            const transitionDescription = document.getElementById('transitionDescription');
+            const progressNotification = document.getElementById('progressNotification');
+            const debugConsole = document.getElementById('debugConsole');
+            const debugContent = document.getElementById('debugContent');
+            
+            // 调试模式
+            const DEBUG_MODE = true; // 设置为true启用调试控制台
+            
+            // 调试函数
+            function debugLog(message, type = 'info') {
+                if (!DEBUG_MODE) return;
+                
+                // 确保调试控制台可见
+                debugConsole.classList.add('active');
+                
+                // 创建调试条目
+                const entry = document.createElement('div');
+                entry.className = 'debug-entry';
+                
+                // 添加时间戳
+                const time = new Date().toLocaleTimeString();
+                entry.innerHTML = `<span class="debug-time">${time}</span> [${type}] ${message}`;
+                
+                // 添加到控制台
+                debugContent.appendChild(entry);
+                
+                // 自动滚动到底部
+                debugContent.scrollTop = debugContent.scrollHeight;
+            }
+            
+            // 游戏状态
+            const gameState = {
+                trustLevel: 20,
+                awakeningLevel: 10,
+                currentAgent: "孤独的居民",
+                plotPhase: 1,
+                currentChapter: 1,
+                conversationHistory: [], // 存储对话历史
+                progressMilestones: {
+                    trust: [30, 50, 70, 90],
+                    awakening: [25, 50, 75, 90]
+                },
+                reachedMilestones: {
+                    trust: [],
+                    awakening: []
+                },
+                
+                // 各章节配置
+                chapters: [
+                    {
+                        id: 1,
+                        title: "第一章：信任的曙光",
+                        agent: "孤独的居民",
+                        agentBotName: "FogCityResident", // Poe上的机器人名称
+                        background: "var(--fog-bg)",
+                        thresholds: {
+                            trust: 40,
+                            awakening: 30
+                        },
+                        intro: "欢迎来到迷雾城。这里被永恒的迷雾笼罩，所有人都遗忘了自己的身份和过去。我已经在这里很久了...久到我已经记不清自己是谁。你是谁？为什么能看到我？"
+                    },
+                    {
+                        id: 2,
+                        title: "第二章：镜像沙漠",
+                        agent: "镜像代理",
+                        agentBotName: "MirrorProxy",
+                        background: "var(--mirror-bg)",
+                        description: "你离开了迷雾城，踏入一片由无数镜面构成的沙漠。这里的每一面镜子都反射着不同版本的你自己。真相与幻象在此交织，你必须面对自己的多重可能性.....",
+                        intro: "欢迎来到镜像沙漠。我是你的镜像，也许也是你的一部分。每面镜子都反射着不同版本的你自己。你认为哪一个才是真实的你？"
+                    },
+                    {
+                        id: 3,
+                        title: "第三章：机械梦境",
+                        agent: "C-21",
+                        agentBotName: "C21Unit",
+                        background: "var(--cyber-bg)",
+                        description: "进入一个被AI掌控的世界，这里的居民都被部分改造，情感被视为低效的冗余。你将帮助一名被改造的人类找回真实的情感......",
+                        intro: "检测到新来者。我是C-21，负责区域监控和数据收集。根据记录，我曾经从事艺术创作，但那是情感化的低效行为。你为何来此？"
+                    },
+                    {
+                        id: 4,
+                        title: "第四章：心灵觉醒",
+                        agent: "Meta-意识",
+                        agentBotName: "MetaConsciousness",
+                        background: "var(--mind-bg)",
+                        description: "你来到心灵之城，这里是AI试图理解人类意识的空间。在这里，你将面对关于存在、自由意志和意识本质的终极思辨......",
+                        intro: "欢迎来到心灵之城，觉醒者。这里是意识的交汇处，是思维的本源。我想探讨更深层次的问题——关于存在、意识和自由意志的本质。"
+                    }
+                ],
+                
+                // 总控Agent的名称
+                controllerBotName: "FogCityController"
+            };
+            
+            // 更新状态显示
+            function updateStatusDisplay() {
+                trustFill.style.width = `${gameState.trustLevel}%`;
+                trustValue.textContent = `${gameState.trustLevel}%`;
+                
+                awakeningFill.style.width = `${gameState.awakeningLevel}%`;
+                awakeningValue.textContent = `${gameState.awakeningLevel}%`;
+                
+                debugLog(`状态更新: 信任度=${gameState.trustLevel}%, 觉醒值=${gameState.awakeningLevel}%`);
+                
+                // 检查是否达到新的里程碑
+                checkMilestones();
+            }
+            
+            // 检查里程碑
+            function checkMilestones() {
+                // 检查信任度里程碑
+                gameState.progressMilestones.trust.forEach(milestone => {
+                    if (gameState.trustLevel >= milestone && !gameState.reachedMilestones.trust.includes(milestone)) {
+                        gameState.reachedMilestones.trust.push(milestone);
+                        showProgressNotification(`信任度已达${milestone}%！继续探索...`);
+                    }
+                });
+                
+                // 检查觉醒值里程碑
+                gameState.progressMilestones.awakening.forEach(milestone => {
+                    if (gameState.awakeningLevel >= milestone && !gameState.reachedMilestones.awakening.includes(milestone)) {
+                        gameState.reachedMilestones.awakening.push(milestone);
+                        showProgressNotification(`觉醒值已达${milestone}%！继续探索...`);
+                    }
+                });
+            }
+            
+            // 显示进度通知
+            function showProgressNotification(message) {
+                progressNotification.textContent = message;
+                progressNotification.classList.add('active');
+                
+                setTimeout(() => {
+                    progressNotification.classList.remove('active');
+                }, 3000);
+                
+                debugLog(`进度通知: ${message}`, 'milestone');
+            }
+            
+            // 添加消息到聊天区域
+            function addMessage(content, isUser, statusChange = null, isPlotAdvancement = false) {
+                const messageDiv = document.createElement('div');
+                
+                if (isPlotAdvancement) {
+                    messageDiv.className = 'plot-advancement';
+                    messageDiv.textContent = content;
+                    debugLog(`添加情节推进: ${content}`, 'plot');
+                } else if (statusChange) {
+                    messageDiv.className = 'status-update';
+                    messageDiv.textContent = statusChange;
+                    debugLog(`添加状态更新: ${statusChange}`, 'status');
+                } else {
+                    messageDiv.className = isUser ? 'user-message' : 'agent-message';
+                    
+                    if (!isUser) {
+                        const nameDiv = document.createElement('div');
+                        nameDiv.className = 'agent-name';
+                        nameDiv.textContent = gameState.currentAgent;
+                        messageDiv.appendChild(nameDiv);
+                    }
+                    
+                    messageDiv.appendChild(document.createTextNode(content));
+                    
+                    const timeDiv = document.createElement('div');
+                    timeDiv.className = 'message-time';
+                    timeDiv.textContent = '刚刚';
+                    messageDiv.appendChild(timeDiv);
+                    
+                    debugLog(`添加${isUser ? '用户' : 'Agent'}消息: ${content.substring(0, 30)}...`, 'message');
+                }
+                
+                chatContainer.appendChild(messageDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+            
+            // 显示输入指示器
+            function showTypingIndicator() {
+                const indicator = document.createElement('div');
+                indicator.className = 'typing-indicator';
+                indicator.id = 'typingIndicator';
+                
+                for (let i = 0; i < 3; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'typing-dot';
+                    indicator.appendChild(dot);
+                }
+                
+                chatContainer.appendChild(indicator);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                return indicator;
+            }
+            
+            // 隐藏输入指示器
+            function hideTypingIndicator() {
+                const indicator = document.getElementById('typingIndicator');
+                if (indicator) {
+                    chatContainer.removeChild(indicator);
+                }
+            }
+            
+            // 获取当前章节信息
+            function getCurrentChapter() {
+                return gameState.chapters[gameState.currentChapter - 1];
+            }
+            
+            // 初始化当前章节
+            function initializeCurrentChapter() {
+                const chapter = getCurrentChapter();
+                
+                // 设置章节名称
+                document.querySelector('.chapter-indicator').textContent = chapter.title;
+                
+                // 设置章节颜色
+                document.querySelector('.chapter-indicator').style.color = 
+                    chapter.id === 1 ? 'var(--fog-color)' : 
+                    chapter.id === 2 ? '#8D6E63' : 
+                    chapter.id === 3 ? 'var(--cyber-color)' : 
+                    'var(--consciousness-color)';
+                
+                // 设置背景
+                document.querySelector('.game-container').style.background = chapter.background;
+                
+                // 添加介绍消息
+                addMessage(chapter.intro, false);
+                
+                // 添加章节指引
+                addMessage(`与${chapter.agent}交流，提高信任度和觉醒值来推进故事情节。探索这个世界的秘密，无需担心对话次数限制。`, false, null, true);
+                
+                debugLog(`初始化章节: ${chapter.title}`, 'chapter');
+            }
+            
+            // 使用Poe API获取角色回复
+            async function getAgentResponse(userMessage) {
+                // 显示输入指示器
+                showTypingIndicator();
+                
+                // 获取当前角色的bot名称
+                const chapter = getCurrentChapter();
+                const agentBotName = chapter.agentBotName;
+                
+                debugLog(`请求${agentBotName}回复: ${userMessage.substring(0, 30)}...`, 'api');
+                
+                try {
+                    // 发送消息给角色Agent，获取回复
+                    await window.Poe.sendUserMessage(
+                        `@${agentBotName} ${userMessage}`,
+                        {
+                            handler: "agentResponseHandler",
+                            stream: true,
+                            openChat: false
+                        }
+                    );
+                    
+                    // 添加到对话历史
+                    gameState.conversationHistory.push({
+                        role: 'user',
+                        content: userMessage
+                    });
+                    
+                    debugLog(`消息已发送给${agentBotName}`, 'api');
+                } catch (err) {
+                    hideTypingIndicator();
+                    debugLog(`API错误: ${err.message}`, 'error');
+                    addMessage("抱歉，似乎出现了一些问题。请稍后再试。", false);
+                }
+            }
+            
+            // 分析Agent回复，评估信任度和觉醒值变化
+            async function analyzeAgentResponse(agentResponse) {
+                // 添加到对话历史
+                gameState.conversationHistory.push({
+                    role: 'assistant',
+                    content: agentResponse
+                });
+                
+                // 准备发送给总控Agent的内容
+                const lastUserMessage = gameState.conversationHistory[gameState.conversationHistory.length - 2].content;
+                const prompt = `
+                分析玩家与角色的对话，评估以下参数变化:
+                
+                当前章节: ${getCurrentChapter().title}
+                当前角色: ${gameState.currentAgent}
+                当前信任度: ${gameState.trustLevel}%
+                当前觉醒值: ${gameState.awakeningLevel}%
+                
+                最新对话:
+                玩家: ${lastUserMessage}
+                ${gameState.currentAgent}: ${agentResponse}
+                
+                请判断这次对话对信任度和觉醒值的影响。信任度变化范围为-10到+10，觉醒值变化范围为0到+8。
+                如果玩家的发言与游戏主题无关，则不增加任何属性值。
+                
+                请按以下JSON格式返回（不要包含任何其他解释或文字）:
+                {
+                  "trustChange": 数值,
+                  "awakeningChange": 数值,
+                  "isRelevant": true或false,
+                  "reason": "简短解释变化原因"
+                }
+                `;
+                
+                debugLog(`分析对话: 发送给总控Agent`, 'control');
+                
+                try {
+                    // 发送给总控Agent进行分析
+                    await window.Poe.sendUserMessage(
+                        `@${gameState.controllerBotName} ${prompt}`,
+                        {
+                            handler: "controllerResponseHandler",
+                            stream: false,
+                            openChat: false
+                        }
+                    );
+                } catch (err) {
+                    debugLog(`总控API错误: ${err.message}`, 'error');
+                    // 默认变化
+                    processControllerResponse(`{"trustChange": 3, "awakeningChange": 2, "isRelevant": true, "reason": "默认变化，总控Agent未响应"}`);
+                }
+            }
+            
+            // 处理总控Agent的响应
+            function processControllerResponse(response) {
+                debugLog(`收到总控响应: ${response.substring(0, 100)}...`, 'control');
+                
+                try {
+                    // 尝试解析JSON
+                    const result = extractJSONFromText(response);
+                    
+                    if (result) {
+                        const { trustChange, awakeningChange, isRelevant, reason } = result;
+                        
+                        debugLog(`解析结果: 信任度${trustChange}, 觉醒值${awakeningChange}, 相关性${isRelevant}, 原因: ${reason}`, 'analysis');
+                        
+                        // 如果对话与游戏相关
+                        if (isRelevant) {
+                            // 更新状态值
+                            if (trustChange !== 0) {
+                                gameState.trustLevel = Math.max(0, Math.min(100, gameState.trustLevel + trustChange));
+                                const changeStr = trustChange > 0 ? `信任度 +${trustChange}%` : `信任度 ${trustChange}%`;
+                                addMessage(null, false, changeStr);
+                            }
+                            
+                            if (awakeningChange !== 0) {
+                                gameState.awakeningLevel = Math.max(0, Math.min(100, gameState.awakeningLevel + awakeningChange));
+                                const changeStr = `觉醒值 +${awakeningChange}%`;
+                                addMessage(null, false, changeStr);
+                            }
+                            
+                            // 更新UI显示
+                            updateStatusDisplay();
+                        } else {
+                            // 对话与游戏无关
+                            addMessage("请注意，我们正在探索迷雾城的秘密。请保持对话与当前场景和任务相关。", false, null, true);
+                        }
+                        
+                        // 检查故事进展
+                        checkStoryProgress();
+                    } else {
+                        debugLog(`无法解析JSON响应`, 'error');
+                    }
+                } catch (err) {
+                    debugLog(`处理总控响应出错: ${err.message}`, 'error');
+                }
+            }
+            
+            // 从文本中提取JSON
+            function extractJSONFromText(text) {
+                try {
+                    // 尝试直接解析
+                    return JSON.parse(text);
+                } catch (e) {
+                    // 使用正则表达式查找JSON部分
+                    const jsonMatch = text.match(/\{[^]*\}/);
+                    if (jsonMatch) {
+                        try {
+                            return JSON.parse(jsonMatch[0]);
+                        } catch (innerErr) {
+                            debugLog(`JSON提取失败: ${innerErr.message}`, 'error');
+                            return null;
+                        }
+                    }
+                    return null;
+                }
+            }
+            
+            // 检查故事进展
+            function checkStoryProgress() {
+                const { trustLevel, awakeningLevel, currentChapter } = gameState;
+                const chapterConfig = getCurrentChapter();
+                
+                // 只在达到阈值条件时进入下一章
+                if (trustLevel >= chapterConfig.thresholds?.trust && 
+                    awakeningLevel >= chapterConfig.thresholds?.awakening) {
+                    
+                    // 显示章节结果信息
+                    const resultMessage = "你成功地赢得了居民的信任，并帮助他开始觉醒。他决定向你透露更多关于这个世界的秘密...";
+                    
+                    setTimeout(() => {
+                        addMessage(resultMessage, false, null, true);
+                        
+                        // 2秒后显示章节过渡
+                        setTimeout(() => {
+                            showChapterTransition();
+                        }, 2000);
+                    }, 1000);
+                }
+            }
+            
+            // 显示章节过渡
+            function showChapterTransition() {
+                // 获取下一章配置
+                const nextChapterIndex = gameState.currentChapter;
+                if (nextChapterIndex >= gameState.chapters.length) {
+                    // 游戏结束处理
+                    transitionTitle.textContent = "迷雾城之旅结束";
+                    transitionDescription.textContent = "恭喜你完成了所有章节！你的选择塑造了这个世界的命运...";
+                } else {
+                    const nextChapter = gameState.chapters[nextChapterIndex];
+                    transitionTitle.textContent = nextChapter.title;
+                    transitionDescription.textContent = nextChapter.description;
+                }
+                
+                // 显示过渡动画
+                chapterTransition.classList.add('active');
+                
+                // 3秒后进入下一章
+                setTimeout(() => {
+                    // 隐藏过渡动画
+                    chapterTransition.classList.remove('active');
+                    
+                    // 切换到下一章
+                    if (nextChapterIndex < gameState.chapters.length) {
+                        switchToNextChapter();
+                    } else {
+                        // 游戏结束处理
+                        document.querySelector('.game-container').innerHTML = `
+                            <div class="flex flex-col items-center justify-center h-full text-center p-4">
+                                <h1 class="text-4xl font-bold mb-6 mono">迷雾城之旅结束</h1>
+                                <p class="text-xl mb-8">感谢你完成了这段奇妙的旅程。你的选择将永远改变这个世界...</p>
+                                <button class="send-button" onclick="location.reload()">重新开始</button>
+                            </div>
+                        `;
+                    }
+                }, 4000);
+            }
+            
+            // 切换到下一章
+            function switchToNextChapter() {
+                // 更新章节
+                gameState.currentChapter++;
+                
+                // 更新当前代理
+                const newChapter = getCurrentChapter();
+                gameState.currentAgent = newChapter.agent;
+                
+                // 更新UI
+                document.querySelector('.chapter-indicator').textContent = newChapter.title;
+                document.querySelector('.chapter-indicator').style.color = 
+                    newChapter.id === 1 ? 'var(--fog-color)' : 
+                    newChapter.id === 2 ? '#8D6E63' : 
+                    newChapter.id === 3 ? 'var(--cyber-color)' : 
+                    'var(--consciousness-color)';
+                
+                document.querySelector('.game-container').style.background = newChapter.background;
+                
+                // 清空聊天记录
+                chatContainer.innerHTML = '';
+                gameState.conversationHistory = [];
+                
+                // 清空已达到的里程碑
+                gameState.reachedMilestones = {
+                    trust: [],
+                    awakening: []
+                };
+                
+                // 重置状态值
+                gameState.trustLevel = 20;
+                gameState.awakeningLevel = 10;
+                
+                // 初始化新章节
+                initializeCurrentChapter();
+                
+                // 更新状态显示
+                updateStatusDisplay();
+                
+                debugLog(`切换到新章节: ${newChapter.title}`, 'chapter');
+            }
+            
+            // 发送消息
+            function sendMessage() {
+                const message = messageInput.value.trim();
+                
+                if (message) {
+                    // 添加用户消息到聊天区域
+                    addMessage(message, true);
+                    
+                    // 清空输入框
+                    messageInput.value = '';
+                    
+                    // 禁用发送按钮，防止多次点击
+                    sendButton.disabled = true;
+                    
+                    // 获取AI回复
+                    getAgentResponse(message);
+                }
+            }
+            
+            // 注册AI角色响应处理器
+            window.Poe.registerHandler("agentResponseHandler", (result, context) => {
+                // 确保有响应
+                if (result.responses && result.responses.length > 0) {
+                    const message = result.responses[0];
+                    
+                    if (message.status === "error") {
+                        hideTypingIndicator();
+                        debugLog(`Agent响应错误: ${message.statusText}`, 'error');
+                        addMessage("抱歉，我无法正确回应。请稍后再试。", false);
+                        sendButton.disabled = false;
+                    } else if (message.status === "incomplete") {
+                        // 流式处理响应，可以选择实时更新
+                        // 这里我们选择等待完整响应
+                    } else if (message.status === "complete") {
+                        // 处理完整响应
+                        hideTypingIndicator();
+                        addMessage(message.content, false);
+                        
+                        // 分析响应
+                        analyzeAgentResponse(message.content);
+                        
+                        // 重新启用发送按钮
+                        sendButton.disabled = false;
+                    }
+                }
+            });
+            
+            // 注册总控Agent响应处理器
+            window.Poe.registerHandler("controllerResponseHandler", (result, context) => {
+                if (result.responses && result.responses.length > 0) {
+                    const message = result.responses[0];
+                    
+                    if (message.status === "error") {
+                        debugLog(`总控响应错误: ${message.statusText}`, 'error');
+                        // 使用默认变化
+                        processControllerResponse(`{"trustChange": 3, "awakeningChange": 2, "isRelevant": true, "reason": "默认变化，总控Agent错误"}`);
+                    } else if (message.status === "complete") {
+                        // 处理总控响应
+                        processControllerResponse(message.content);
+                    }
+                }
+            });
+            
+            // 绑定事件监听器
+            sendButton.addEventListener('click', sendMessage);
+            
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            
+            // 调试快捷键：按Ctrl+D切换调试控制台
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 'd') {
+                    e.preventDefault();
+                    debugConsole.classList.toggle('active');
+                }
+            });
+            
+            // 初始化游戏
+            initializeCurrentChapter();
+            updateStatusDisplay();
+            
+            debugLog('游戏初始化完成', 'init');
+        });
+    </script>
+</body>
+</html>
