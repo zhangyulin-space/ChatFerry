@@ -6,14 +6,14 @@ import { AudioController } from '../game/controllers/AudioController'
 interface ChapterTransitionProps {
   isVisible: boolean
   chapter: Chapter
-  previousChapter: Chapter | null
+  // previousChapter: Chapter | null
   onAnimationComplete?: () => void
 }
 
 export const ChapterTransition: React.FC<ChapterTransitionProps> = ({
   isVisible,
   chapter,
-  previousChapter,
+  // previousChapter,
   onAnimationComplete
 }) => {
   useEffect(() => {

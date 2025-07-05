@@ -3,8 +3,11 @@ import axios from 'axios'
 import fs from 'fs'
 import path from 'path'
 
-type ModelProvider = 'openai' | 'ollama' | 'anthropic' | 'gemini' | 'custom' | 'deepseek'
-type ModelName = 'gpt-4' | 'gpt-3.5-turbo' | 'claude-3' | 'gemini-pro' | 'mistral' | 'llama2' | 'deepseek-chat' | string
+type ModelProvider = 'openai' | 'ollama' | 'anthropic' 
+                   | 'gemini' | 'custom' | 'deepseek'|'openrouter'|'zhizengzeng'
+
+type ModelName = 'gpt-4' | 'gpt-3.5-turbo' | 'claude-3' | 'gemini-pro' | 'mistral' 
+                 | 'llama2' | 'deepseek-chat' |'qwen/qwen3-32b:free' |string
 
 interface AgentConfig {
   provider: ModelProvider
@@ -54,6 +57,44 @@ export class AgentManager {
       this.agentPrompts.set(agentId, prompt)
     }
   }
+
+  private async callOpenRouter(prompt: string, config: AgentConfig): Promise<LLMResponse> {
+    try {
+      console.log('Calling OpenRouter API with model:', config.model)
+      const response = await axios.post(
+        'https://openrouter.ai/api/v1/chat/completions',
+        {
+          model: config.model,
+          messages: [{ role: 'system', content: prompt }],
+          temperature: config.temperature,
+          max_tokens: config.maxTokens
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${config.apiKey}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://github.com/zhangyulin-space/ChatFerry', 
+            'X-Title': 'ChatFerry' 
+          },
+          timeout: 30000 // 30秒超时
+        }
+      )
+      console.log('OpenRouter API response received')
+      return { content: response.data.choices[0].message.content }
+    } catch (error: any) {
+      console.error('OpenRouter API error:', error)
+      if (error.code === 'ECONNABORTED') {
+        return { content: '', error: '请求超时，请稍后再试' }
+      }
+      if (error.response) {
+        console.error('Response status:', error.response.status)
+        console.error('Response data:', error.response.data)
+        return { content: '', error: `API错误: ${error.response.status} - ${error.response.data?.error?.message || '未知错误'}` }
+      }
+      return { content: '', error: error?.message || '调用 OpenRouter API 失败' }
+    }
+  }
+
 
   private async callOpenAI(prompt: string, config: AgentConfig): Promise<LLMResponse> {
     try {
@@ -184,6 +225,41 @@ export class AgentManager {
     }
   }
 
+  private async callZhizengzeng(prompt: string, config: AgentConfig): Promise<LLMResponse> {
+    try {
+      console.log('Calling Zhizengzeng API with model:', config.model)
+      const response = await axios.post(
+        'https://api.zhizengzeng.com/v1/chat/completions',
+        {
+          model: config.model || 'gpt-3.5-turbo',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: config.temperature,
+          max_tokens: config.maxTokens
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${config.apiKey}`,
+            'Content-Type': 'application/json'
+          },
+          timeout: 30000 // 30秒超时
+        }
+      )
+      console.log('Zhizengzeng API response received')
+      return { content: response.data.choices[0].message.content }
+    } catch (error: any) {
+      console.error('Zhizengzeng API error:', error)
+      if (error.code === 'ECONNABORTED') {
+        return { content: '', error: '请求超时，请稍后再试' }
+      }
+      if (error.response) {
+        console.error('Response status:', error.response.status)
+        console.error('Response data:', error.response.data)
+        return { content: '', error: `API错误: ${error.response.status} - ${error.response.data?.error?.message || '未知错误'}` }
+      }
+      return { content: '', error: error?.message || '调用 Zhizengzeng API 失败' }
+    }
+  }
+
   private async callModel(prompt: string, config: AgentConfig): Promise<LLMResponse> {
     switch (config.provider) {
       case 'deepseek':
@@ -198,6 +274,13 @@ export class AgentManager {
         return this.callGemini(prompt, config)
       case 'custom':
         return this.callCustomModel(prompt, config)
+      
+      case 'openrouter':
+          return this.callOpenRouter(prompt, config)
+  
+      case 'zhizengzeng':
+        return this.callZhizengzeng(prompt, config)
+  
       default:
         throw new Error(`Unsupported model provider: ${config.provider}`)
     }
@@ -328,13 +411,41 @@ ${agentResponse}
     }
   }
 
+  // private extractJSON(text: string): string {
+  //   const jsonMatch = text.match(/\{[\s\S]*\}/)
+  //   if (!jsonMatch) {
+  //     throw new Error('No JSON object found in response')
+  //   }
+  //   return jsonMatch[0]
+  // }
+
   private extractJSON(text: string): string {
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) {
-      throw new Error('No JSON object found in response')
+    try {
+      // 首先尝试直接解析整个响应
+      JSON.parse(text)
+      return text
+    } catch (e) {
+      // 如果直接解析失败，尝试提取 JSON 对象
+      const jsonMatch = text.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        try {
+          JSON.parse(jsonMatch[0])
+          return jsonMatch[0]
+        } catch (e) {
+          console.error('Failed to parse extracted JSON:', e)
+        }
+      }
+      
+      // 如果还是失败，返回一个默认的 JSON 对象
+      return JSON.stringify({
+        isRelevant: true,
+        trustChange: 0,
+        awakeningChange: 0,
+        reasoning: '无法解析评估结果，使用默认值'
+      })
     }
-    return jsonMatch[0]
   }
+
 
   async loadAgentPrompt(agentId: string, promptPath: string) {
     try {

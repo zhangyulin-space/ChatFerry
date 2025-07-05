@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Achievement, AchievementController } from '../game/controllers/AchievementController'
+import { Achievement } from '../game/controllers/AchievementController'
 
 interface AchievementGalleryProps {
   isVisible: boolean

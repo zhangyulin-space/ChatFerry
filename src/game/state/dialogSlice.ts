@@ -16,6 +16,12 @@ export interface Message {
   }
 }
 
+export interface DialogChoice {
+  text: string
+  id: string | number  // 添加 id 属�?
+  onSelect: () => void
+}
+
 export interface DialogState {
   content: string
   character?: {
@@ -34,6 +40,7 @@ export interface DialogState {
     timestamp: string
   }>
   messages: Message[]
+  // onNext: () => void
 }
 
 const initialState: DialogState = {
@@ -41,7 +48,11 @@ const initialState: DialogState = {
   isVisible: false,
   isChat: false,
   history: [],
-  messages: []
+  messages: [],
+ // onNext() {
+      
+ // },
+  // onNext: () => {}
 }
 
 export const dialogSlice = createSlice({

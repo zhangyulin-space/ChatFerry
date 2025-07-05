@@ -12,6 +12,7 @@ const AppContent: React.FC = () => {
   const dispatch = useDispatch()
   const gameStatus = useSelector((state: RootState) => state.game.status)
   const isLoading = useSelector((state: RootState) => state.game.isLoading)
+  const loadingProgress = useSelector((state: RootState) => state.game.loadingProgress)
 
   const handleStartGame = async () => {
     dispatch(setGameStatus('playing'))
@@ -26,7 +27,7 @@ const AppContent: React.FC = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {isLoading ? (
-        <LoadingScreen />
+        <LoadingScreen progress={loadingProgress} />
       ) : gameStatus === 'menu' ? (
         <MainMenu onStartGame={handleStartGame} />
       ) : (

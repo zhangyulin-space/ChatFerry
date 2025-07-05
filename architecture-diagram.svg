@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 定义渐变色 -->
+    <linearGradient id="uiGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#E3F2FD;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#BBDEFB;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="serviceGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#E8F5E8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#C8E6C9;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="resourceGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FFF3E0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFCC80;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="externalGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#F3E5F5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#CE93D8;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景 -->
+  <rect width="800" height="600" fill="#FAFAFA"/>
+  
+  <!-- UI层 -->
+  <rect x="50" y="50" width="700" height="120" fill="url(#uiGradient)" stroke="#1976D2" stroke-width="2" rx="10"/>
+  <text x="70" y="80" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1976D2">UI Layer</text>
+  
+  <!-- UI层组件 -->
+  <rect x="80" y="95" width="120" height="60" fill="#2196F3" stroke="#1565C0" stroke-width="1" rx="5"/>
+  <text x="105" y="115" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">React</text>
+  <text x="95" y="130" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">TypeScript</text>
+  <text x="105" y="145" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">Redux</text>
+  
+  <rect x="220" y="95" width="120" height="60" fill="#2196F3" stroke="#1565C0" stroke-width="1" rx="5"/>
+  <text x="235" y="115" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">Framer Motion</text>
+  <text x="260" y="135" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">动画系统</text>
+  
+  <rect x="360" y="95" width="120" height="60" fill="#2196F3" stroke="#1565C0" stroke-width="1" rx="5"/>
+  <text x="385" y="115" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">Tailwind CSS</text>
+  <text x="395" y="135" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">样式系统</text>
+  
+  <rect x="500" y="95" width="120" height="60" fill="#2196F3" stroke="#1565C0" stroke-width="1" rx="5"/>
+  <text x="530" y="115" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">组件系统</text>
+  <text x="520" y="130" font-family="Arial, sans-serif" font-size="11" fill="white">对话界面</text>
+  <text x="520" y="145" font-family="Arial, sans-serif" font-size="11" fill="white">场景渲染</text>
+  
+  <!-- 服务层 -->
+  <rect x="50" y="200" width="700" height="120" fill="url(#serviceGradient)" stroke="#388E3C" stroke-width="2" rx="10"/>
+  <text x="70" y="230" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#388E3C">Service Layer</text>
+  
+  <!-- 服务层组件 -->
+  <rect x="80" y="245" width="150" height="60" fill="#4CAF50" stroke="#2E7D32" stroke-width="1" rx="5"/>
+  <text x="120" y="265" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">游戏状态管理</text>
+  <text x="100" y="280" font-family="Arial, sans-serif" font-size="11" fill="white">进度追踪</text>
+  <text x="100" y="295" font-family="Arial, sans-serif" font-size="11" fill="white">存档系统</text>
+  
+  <rect x="250" y="245" width="150" height="60" fill="#4CAF50" stroke="#2E7D32" stroke-width="1" rx="5"/>
+  <text x="300" y="265" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">对话管理</text>
+  <text x="270" y="280" font-family="Arial, sans-serif" font-size="11" fill="white">AI交互</text>
+  <text x="270" y="295" font-family="Arial, sans-serif" font-size="11" fill="white">响应处理</text>
+  
+  <rect x="420" y="245" width="150" height="60" fill="#4CAF50" stroke="#2E7D32" stroke-width="1" rx="5"/>
+  <text x="470" y="265" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">场景管理</text>
+  <text x="440" y="280" font-family="Arial, sans-serif" font-size="11" fill="white">章节控制</text>
+  <text x="440" y="295" font-family="Arial, sans-serif" font-size="11" fill="white">内存管理</text>
+  
+  <rect x="590" y="245" width="130" height="60" fill="#4CAF50" stroke="#2E7D32" stroke-width="1" rx="5"/>
+  <text x="630" y="265" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">成就系统</text>
+  <text x="610" y="280" font-family="Arial, sans-serif" font-size="11" fill="white">事件追踪</text>
+  <text x="610" y="295" font-family="Arial, sans-serif" font-size="11" fill="white">进度记录</text>
+  
+  <!-- 资源管理层 -->
+  <rect x="50" y="350" width="700" height="120" fill="url(#resourceGradient)" stroke="#F57C00" stroke-width="2" rx="10"/>
+  <text x="70" y="380" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#F57C00">Resource Management Layer</text>
+  
+  <!-- 资源管理层组件 -->
+  <rect x="80" y="395" width="130" height="60" fill="#FF9800" stroke="#E65100" stroke-width="1" rx="5"/>
+  <text x="120" y="415" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">音频管理</text>
+  <text x="100" y="430" font-family="Arial, sans-serif" font-size="11" fill="white">BGM控制</text>
+  <text x="100" y="445" font-family="Arial, sans-serif" font-size="11" fill="white">音效处理</text>
+  
+  <rect x="230" y="395" width="130" height="60" fill="#FF9800" stroke="#E65100" stroke-width="1" rx="5"/>
+  <text x="270" y="415" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">视频管理</text>
+  <text x="250" y="430" font-family="Arial, sans-serif" font-size="11" fill="white">背景视频</text>
+  <text x="250" y="445" font-family="Arial, sans-serif" font-size="11" fill="white">资源加载</text>
+  
+  <rect x="380" y="395" width="130" height="60" fill="#FF9800" stroke="#E65100" stroke-width="1" rx="5"/>
+  <text x="415" y="415" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">AI集成管理</text>
+  <text x="400" y="430" font-family="Arial, sans-serif" font-size="11" fill="white">OpenAI API</text>
+  <text x="400" y="445" font-family="Arial, sans-serif" font-size="11" fill="white">请求处理</text>
+  
+  <rect x="530" y="395" width="130" height="60" fill="#FF9800" stroke="#E65100" stroke-width="1" rx="5"/>
+  <text x="565" y="415" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">资产管理</text>
+  <text x="550" y="430" font-family="Arial, sans-serif" font-size="11" fill="white">图片资源</text>
+  <text x="550" y="445" font-family="Arial, sans-serif" font-size="11" fill="white">缓存控制</text>
+  
+  <!-- 外部资源层 -->
+  <rect x="50" y="500" width="700" height="80" fill="url(#externalGradient)" stroke="#7B1FA2" stroke-width="2" rx="10"/>
+  <text x="70" y="530" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#7B1FA2">External Resources</text>
+  
+  <!-- 外部资源组件 -->
+  <rect x="80" y="540" width="130" height="30" fill="#9C27B0" stroke="#4A148C" stroke-width="1" rx="3"/>
+  <text x="120" y="560" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">OpenAI LLM</text>
+  
+  <rect x="230" y="540" width="130" height="30" fill="#9C27B0" stroke="#4A148C" stroke-width="1" rx="3"/>
+  <text x="275" y="560" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">图片资源</text>
+  
+  <rect x="380" y="540" width="130" height="30" fill="#9C27B0" stroke="#4A148C" stroke-width="1" rx="3"/>
+  <text x="425" y="560" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">视频文件</text>
+  
+  <rect x="530" y="540" width="130" height="30" fill="#9C27B0" stroke="#4A148C" stroke-width="1" rx="3"/>
+  <text x="575" y="560" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">音频文件</text>
+  
+  <!-- 简化的连接线 -->
+  <!-- UI到Service的双向连接 -->
+  <line x1="400" y1="170" x2="400" y2="200" stroke="#666" stroke-width="1" marker-end="url(#arrowhead)" marker-start="url(#arrowhead-up)"/>
+  
+  <!-- Service到Resource的双向连接 -->
+  <line x1="400" y1="320" x2="400" y2="350" stroke="#666" stroke-width="1" marker-end="url(#arrowhead)" marker-start="url(#arrowhead-up)"/>
+  
+  <!-- Resource到External的双向连接 -->
+  <line x1="400" y1="470" x2="400" y2="500" stroke="#666" stroke-width="1" marker-end="url(#arrowhead)" marker-start="url(#arrowhead-up)"/>
+  
+  <!-- 箭头标记 -->
+  <defs>
+    <!-- 向下的箭头 -->
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#666"/>
+    </marker>
+    <!-- 向上的箭头 -->
+    <marker id="arrowhead-up" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="10 0, 0 3.5, 10 7" fill="#666"/>
+    </marker>
+  </defs>
+  
+  <!-- 数据流标签 -->
+  <text x="410" y="185" font-family="Arial, sans-serif" font-size="10" fill="#666">用户交互 ↕ 状态更新</text>
+  <text x="410" y="335" font-family="Arial, sans-serif" font-size="10" fill="#666">资源请求 ↕ 数据返回</text>
+  <text x="410" y="485" font-family="Arial, sans-serif" font-size="10" fill="#666">外部调用 ↕ 响应数据</text>
+</svg> 

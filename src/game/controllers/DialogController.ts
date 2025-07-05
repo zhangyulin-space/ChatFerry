@@ -56,4 +56,27 @@ export class DialogController {
       isChat: false
     }))
   }
+
+  static displayMessage(options: {
+    speaker: string
+    content: string
+    choices: any[]
+  }) {
+    store.dispatch(setDialogState({
+      content: options.content,
+      character: { name: options.speaker },
+      choices: options.choices,
+      isVisible: true,
+      isChat: false
+    }))
+
+    // 添加到对话历史
+    store.dispatch(addToHistory({
+      content: options.content,
+      character: { name: options.speaker }
+    }))
+
+    // 播放对话音效
+    AudioController.playUISound('select')
+  }
 } 

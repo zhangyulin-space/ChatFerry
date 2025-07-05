@@ -45,6 +45,7 @@ const NodePath_Final = exports.default = class NodePath {
     this.key = null;
     this.node = null;
     this.type = null;
+    this._store = null;
     this.parent = parent;
     this.hub = hub;
     this.data = null;
@@ -84,7 +85,7 @@ const NodePath_Final = exports.default = class NodePath {
       throw new Error("To get a node path the parent needs to exist");
     }
     const targetNode = container[key];
-    const paths = cache.getOrCreateCachedPaths(hub, parent);
+    const paths = cache.getOrCreateCachedPaths(parent, parentPath);
     let path = paths.get(targetNode);
     if (!path) {
       path = new NodePath(hub, parent);

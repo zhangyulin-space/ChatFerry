@@ -53,7 +53,7 @@ function replaceWithMultiple(nodes) {
   nodes = _modification._verifyNodeList.call(this, nodes);
   inheritLeadingComments(nodes[0], this.node);
   inheritTrailingComments(nodes[nodes.length - 1], this.node);
-  (_getCachedPaths = (0, _cache.getCachedPaths)(this.hub, this.parent)) == null || _getCachedPaths.delete(this.node);
+  (_getCachedPaths = (0, _cache.getCachedPaths)(this)) == null || _getCachedPaths.delete(this.node);
   this.node = this.container[this.key] = null;
   const paths = this.insertAfter(nodes);
   if (this.node) {
@@ -141,7 +141,7 @@ function _replaceWith(node) {
     validate(this.parent, this.key, node);
   }
   this.debug(`Replace with ${node == null ? void 0 : node.type}`);
-  (_getCachedPaths2 = (0, _cache.getCachedPaths)(this.hub, this.parent)) == null || _getCachedPaths2.set(node, this).delete(this.node);
+  (_getCachedPaths2 = (0, _cache.getCachedPaths)(this)) == null || _getCachedPaths2.set(node, this).delete(this.node);
   this.node = this.container[this.key] = node;
 }
 function replaceExpressionWithStatements(nodes) {

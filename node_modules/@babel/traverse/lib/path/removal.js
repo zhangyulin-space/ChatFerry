@@ -56,7 +56,8 @@ function _remove() {
 function _markRemoved() {
   this._traverseFlags |= _index.SHOULD_SKIP | _index.REMOVED;
   if (this.parent) {
-    (0, _cache.getCachedPaths)(this.hub, this.parent).delete(this.node);
+    var _getCachedPaths;
+    (_getCachedPaths = (0, _cache.getCachedPaths)(this)) == null || _getCachedPaths.delete(this.node);
   }
   this.node = null;
 }

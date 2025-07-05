@@ -5,13 +5,13 @@ import { RootState } from '../game/state/store'
 import styles from '../styles/ChapterVideo.module.css'
 
 const VIDEO_PATHS = {
-  'fog-city': '/videos/fog-city.mp4',
-  'mirror-desert': '/videos/mirror-desert.mp4',
-  'mechanical-dream': '/videos/mechanical-dream.mp4',
-  'awakening': '/videos/awakening.mp4',
-  'transcendence': '/videos/transcendence.mp4',
-  'return': '/videos/return.mp4',
-  'fusion': '/videos/fusion.mp4'
+  'fog-city': process.env.NODE_ENV === 'development' ? '/videos/fog-city.mp4' : './videos/fog-city.mp4',
+  'mirror-desert': process.env.NODE_ENV === 'development' ? '/videos/mirror-desert.mp4' : './videos/mirror-desert.mp4',
+  'mechanical-dream': process.env.NODE_ENV === 'development' ? '/videos/mechanical-dream.mp4' : './videos/mechanical-dream.mp4',
+  'awakening': process.env.NODE_ENV === 'development' ? '/videos/awakening.mp4' : './videos/awakening.mp4',
+  'transcendence': process.env.NODE_ENV === 'development' ? '/videos/transcendence.mp4' : './videos/transcendence.mp4',
+  'return': process.env.NODE_ENV === 'development' ? '/videos/return.mp4' : './videos/return.mp4',
+  'fusion': process.env.NODE_ENV === 'development' ? '/videos/fusion.mp4' : './videos/fusion.mp4'
 } as const
 
 interface ChapterVideoProps {

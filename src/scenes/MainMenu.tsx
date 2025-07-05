@@ -20,7 +20,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onStartGame }) => {
         transition={{ duration: 0.8 }}
         className="text-center mb-12"
       >
-        <h1 className="text-6xl font-bold text-primary mb-4">禅境</h1>
+        <h1 className="text-6xl font-bold text-primary mb-4">语渡--意识探索之旅</h1>
         <p className="text-xl text-foreground/60">意识探索之旅</p>
       </motion.div>
 

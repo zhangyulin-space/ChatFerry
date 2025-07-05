@@ -5,12 +5,13 @@ import { RootState } from '../game/state/store'
 import { DialogResponseController } from '../game/controllers/DialogResponseController'
 import { AudioController } from '../game/controllers/AudioController'
 import { Message, addMessage } from '../game/state/dialogSlice'
+import { Chapter } from '../game/state/gameSlice'
 
 interface ChatBoxProps {
   content: string
 }
 
-export const ChatBox: React.FC<ChatBoxProps> = ({ content }) => {
+export const ChatBox: React.FC<ChatBoxProps> = () => {
   const dispatch = useDispatch()
   const [inputValue, setInputValue] = useState('')
   const [isTyping, setIsTyping] = useState(false)
@@ -18,6 +19,21 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ content }) => {
   const gameState = useSelector((state: RootState) => state.game)
   const dialogState = useSelector((state: RootState) => state.dialog)
   const messages = useSelector((state: RootState) => state.dialog.messages)
+
+  const getPlayerName = (chapter: Chapter) => {
+    switch (chapter) {
+      case 'fog-city':
+        return '孤独旅者'
+      case 'mirror-desert':
+        return '镜中探索者'
+      case 'mechanical-dream':
+        return '意识漂流者'
+      case 'awakening':
+        return '觉醒者'
+      default:
+        return '神秘访客'
+    }
+  }
 
   // 当对话状态更新时，添加新消息
   useEffect(() => {
@@ -116,6 +132,11 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ content }) => {
                     {message.character.name}
                   </span>
                 )}
+                {message.sender === 'player' && (
+                  <span className="text-xs text-blue-400 mb-1 mr-3 text-right">
+                    {getPlayerName(gameState.currentChapter)}
+                  </span>
+                )}
                 <div
                   className={`max-w-[80%] rounded-lg p-3 ${
                     message.sender === 'player'
@@ -136,7 +157,7 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ content }) => {
             className="flex justify-start"
           >
             <div className="bg-background/40 text-foreground/60 rounded-lg p-3">
-              正在输入...
+             思考中...
             </div>
           </motion.div>
         )}

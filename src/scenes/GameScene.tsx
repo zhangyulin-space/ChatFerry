@@ -5,11 +5,12 @@ import { RootState } from '../game/state/store'
 import { DialogBox } from '../components/DialogBox'
 import { ChatBox } from '../components/ChatBox'
 import { StatusBar } from '../components/StatusBar'
+import { PlayerStatusPanel } from '../components/PlayerStatusPanel'
 import { CharacterController } from '../game/controllers/CharacterController'
 import { AudioController } from '../game/controllers/AudioController'
 import { Character } from '../game/state/characterSlice'
 import { ChapterTransition } from '../components/ChapterTransition'
-import { setShowTransition, setShowEndingAnimation, Chapter } from '../game/state/gameSlice'
+import { setShowTransition, setShowEndingAnimation, setGameStatus, Chapter } from '../game/state/gameSlice'
 import { EndingAnimation } from '../components/EndingAnimation'
 import { CharacterInfo } from '../components/CharacterInfo'
 import { AnyAction } from '@reduxjs/toolkit'
@@ -20,6 +21,8 @@ import { SaveMenu } from '../components/SaveMenu'
 import { OptionsButton } from '../components/OptionsButton'
 import ChapterVideo from '../components/ChapterVideo'
 import { GameController } from '../game/controllers/GameController'
+import { GameIntroduction } from '../components/GameIntroduction'
+import GameEnding from '../components/GameEnding'
 
 interface GameSceneProps {
   onExitToMenu: () => void
@@ -100,6 +103,21 @@ export const GameScene: React.FC<GameSceneProps> = ({ onExitToMenu }) => {
     }
   }
 
+  const getAICharacterName = () => {
+    switch (gameState.currentChapter) {
+      case 'fog-city':
+        return '迷雾城居民'
+      case 'mirror-desert':
+        return '镜像代理'
+      case 'mechanical-dream':
+        return 'C-21'
+      case 'awakening':
+        return 'Meta意识'
+      default:
+        return '神秘存在'
+    }
+  }
+
   const hasMemories = currentCharacter?.memories && currentCharacter.memories.length > 0
   const latestMemory = hasMemories ? currentCharacter.memories[currentCharacter.memories.length - 1] : null
 
@@ -132,6 +150,16 @@ export const GameScene: React.FC<GameSceneProps> = ({ onExitToMenu }) => {
     setIsSaveMenuOpen(true)
   }
 
+  const handleRestart = () => {
+    dispatch(setGameStatus('menu'))
+    // 重置游戏状态
+  }
+
+  // 如果游戏已结束，显示结束界面
+  if (gameState.status === 'ended') {
+    return <GameEnding onRestart={handleRestart} />
+  }
+
   return (
     <div className={`relative min-h-screen ${getBackgroundColor()} transition-colors duration-1000`}>
       <ChapterVideo chapter={gameState.currentChapter} />
@@ -143,12 +171,28 @@ export const GameScene: React.FC<GameSceneProps> = ({ onExitToMenu }) => {
       />
 
       {!dialogState.isChat && (
+        <GameIntroduction key={gameState.currentChapter} chapter={gameState.currentChapter} />
+      )}
+
+      {/* 调试信息 */}
+      {/* <div className="fixed top-20 right-4 bg-black/80 text-white p-2 text-xs z-50">
+        <div>isChat: {dialogState.isChat ? 'true' : 'false'}</div>
+        <div>isVisible: {dialogState.isVisible ? 'true' : 'false'}</div>
+        <div>chapter: {gameState.currentChapter}</div>
+        <div>showComponents: {(!dialogState.isChat) ? 'true' : 'false'}</div>
+      </div> */}
+
+      {!dialogState.isChat && (
+        <PlayerStatusPanel chapter={gameState.currentChapter} />
+      )}
+
+      {!dialogState.isChat && (
         <DialogBox
           isVisible={dialogState.isVisible}
-          characterName={dialogState.character?.name}
+          characterName={dialogState.character?.name || getAICharacterName()}
           content={dialogState.content || ''}
-          choices={dialogState.choices}
-          onNext={dialogState.onNext}
+          // choices={dialogState.choices}
+          onNext={() => {}}
         />
       )}
 
@@ -178,7 +222,7 @@ export const GameScene: React.FC<GameSceneProps> = ({ onExitToMenu }) => {
       <ChapterTransition
         isVisible={gameState.showTransition}
         chapter={gameState.currentChapter}
-        previousChapter={gameState.previousChapter}
+        // previousChapter={gameState.previousChapter}
         onAnimationComplete={handleTransitionComplete}
       />
 

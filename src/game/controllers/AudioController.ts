@@ -3,21 +3,21 @@ import { Chapter } from '../state/gameSlice'
 export class AudioController {
   private static readonly AUDIO_PATHS = {
     bgm: {
-      'fog-city': '/audio/bgm/fog-city-ambience.mp3',
-      'mirror-desert': '/audio/bgm/mirror-desert-theme.mp3',
-      'mechanical-dream': '/audio/bgm/mechanical-dream.mp3',
-      'awakening': '/audio/bgm/awakening-theme.mp3',
-      transcendence: '/audio/bgm/transcendence.mp3',
-      return: '/audio/bgm/return.mp3',
-      fusion: '/audio/bgm/fusion.mp3'
+      'fog-city': process.env.NODE_ENV === 'development' ? '/audio/bgm/fog-city-ambience.mp3' : './audio/bgm/fog-city-ambience.mp3',
+      'mirror-desert': process.env.NODE_ENV === 'development' ? '/audio/bgm/mirror-desert-theme.mp3' : './audio/bgm/mirror-desert-theme.mp3',
+      'mechanical-dream': process.env.NODE_ENV === 'development' ? '/audio/bgm/mechanical-dream.mp3' : './audio/bgm/mechanical-dream.mp3',
+      'awakening': process.env.NODE_ENV === 'development' ? '/audio/bgm/awakening-theme.mp3' : './audio/bgm/awakening-theme.mp3',
+      transcendence: process.env.NODE_ENV === 'development' ? '/audio/bgm/transcendence.mp3' : './audio/bgm/transcendence.mp3',
+      return: process.env.NODE_ENV === 'development' ? '/audio/bgm/return.mp3' : './audio/bgm/return.mp3',
+      fusion: process.env.NODE_ENV === 'development' ? '/audio/bgm/fusion.mp3' : './audio/bgm/fusion.mp3'
     },
     ui: {
-      click: '/audio/ui/click.mp3',
-      hover: '/audio/ui/hover.mp3',
-      start: '/audio/ui/start.mp3',
-      back: '/audio/ui/back.mp3',
-      select: '/audio/ui/select.mp3',
-      ending: '/audio/ui/ending.mp3'
+      click: process.env.NODE_ENV === 'development' ? '/audio/ui/click.mp3' : './audio/ui/click.mp3',
+      hover: process.env.NODE_ENV === 'development' ? '/audio/ui/hover.mp3' : './audio/ui/hover.mp3',
+      start: process.env.NODE_ENV === 'development' ? '/audio/ui/start.mp3' : './audio/ui/start.mp3',
+      back: process.env.NODE_ENV === 'development' ? '/audio/ui/back.mp3' : './audio/ui/back.mp3',
+      select: process.env.NODE_ENV === 'development' ? '/audio/ui/select.mp3' : './audio/ui/select.mp3',
+      ending: process.env.NODE_ENV === 'development' ? '/audio/ui/ending.mp3' : './audio/ui/ending.mp3'
     }
   }
 

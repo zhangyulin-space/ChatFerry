@@ -12,13 +12,15 @@ export const StatusBar: React.FC<StatusBarProps> = ({ chapter, trustLevel, awake
   const getChapterName = (chapter: Chapter) => {
     switch (chapter) {
       case 'fog-city':
-        return '迷雾城'
+        return '第一章节：迷雾城'
       case 'mirror-desert':
-        return '镜像沙漠'
+        return '第二章节：镜像沙漠'
       case 'mechanical-dream':
-        return '机械梦境'
+        return '第三章节：机械梦境'
       case 'awakening':
-        return '觉醒'
+        return '第四章节：觉醒之境'
+      case 'ending':
+        return '终章：旅程终章'
       default:
         return '未知章节'
     }
@@ -28,7 +30,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ chapter, trustLevel, awake
     <div className="fixed top-0 left-0 right-0 bg-black/40 backdrop-blur-sm p-4" style={{ zIndex: 10 }}>
       <div className="container mx-auto">
         <div className="flex items-center justify-between">
-          <span className="text-foreground font-medium text-lg">章节：{getChapterName(chapter)}</span>
+          <span className="text-foreground font-medium text-lg">{getChapterName(chapter)}</span>
           
           <div className="flex items-center space-x-8">
             <div className="flex items-center space-x-2">
@@ -50,7 +52,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ chapter, trustLevel, awake
                 <motion.div
                   className="h-full bg-purple-500"
                   initial={{ width: 0 }}
-                  animate={{ width: `${(awakeningLevel / 10) * 100}%` }}
+                  animate={{ width: `${(awakeningLevel / 8) * 100}%` }}
                   transition={{ duration: 0.5 }}
                 />
               </div>

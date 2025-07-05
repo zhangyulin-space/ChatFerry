@@ -6,12 +6,24 @@ import { GameController } from './GameController'
 import { CharacterController } from './CharacterController'
 import { AgentManager } from '../agents/AgentManager'
 import { DialogController } from './DialogController'
+import { setGameStatus, setCurrentChapter } from '../state/gameSlice'
+import { checkChapterTransition, checkEndingCondition } from '../config/chapterConfig'
+
+// 环境判断与路径工?
+const isDev = process.env.NODE_ENV === 'development';
+const getPromptPath = (filename: string) => isDev ? `/prompts/${filename}` : `./prompts/${filename}`;
 
 // Import dialog data
 import fogCityDialog from '../data/fog-city-dialog.json'
 import mirrorDesertDialog from '../data/mirror-desert-dialog.json'
 import mechanicalDreamDialog from '../data/mechanical-dream-dialog.json'
 import awakeningDialog from '../data/awakening-dialog.json'
+
+console.log('Dialog data imported:')
+console.log('fogCityDialog:', fogCityDialog)
+console.log('mirrorDesertDialog:', mirrorDesertDialog)
+console.log('mechanicalDreamDialog:', mechanicalDreamDialog)
+console.log('awakeningDialog:', awakeningDialog)
 
 export class DialogResponseController {
   private static agentManager = AgentManager.getInstance()
@@ -21,20 +33,34 @@ export class DialogResponseController {
     'fog-city': fogCityDialog,
     'mirror-desert': mirrorDesertDialog,
     'mechanical-dream': mechanicalDreamDialog,
-    'awakening': awakeningDialog
+    'awakening': awakeningDialog,
+    'ending': {} // 游戏结束时不需要对话数据
   }
 
   private static currentDialog: any = null
   private static currentNode: string = ''
 
   static async initialize() {
-    if (this.initialized) return
+    console.log('DialogResponseController.initialize() 开始')
+    if (this.initialized) {
+      console.log('DialogResponseController 已经初始化，跳过')
+      return
+    }
+
+    console.log('开始初始化对话响应控制器...')
 
     const commonConfig = {
-      provider: 'deepseek' as const,
-      model: 'deepseek-chat',
-      apiKey: 'sk-0ce67830fd284f06855c2657de68dd25'
+      provider: 'zhizengzeng' as const,
+      model: "gpt-3.5-turbo", // 使用zhizengzeng支持的模型
+      //model: "glm-4-flash",
+      //model: "hunyuan-t1-latest",
+      apiKey: 'sk-zk21eea951e55a01ad6e68998f4b5727eea67ceb61ebd678'
     }
+
+    
+
+
+
 
     // 注册迷雾城居民代理
     this.agentManager.registerAgent(
@@ -42,12 +68,12 @@ export class DialogResponseController {
       {
         ...commonConfig,
         temperature: 0.7,
-        maxTokens: 1000
+        maxTokens: 300
       }
     )
     await this.agentManager.loadAgentPrompt(
       'fog-city-resident',
-      '/prompts/FogCityResident-agent.md'
+      getPromptPath('FogCityResident-agent.md')
     )
 
     // 注册迷雾城控制代理
@@ -56,12 +82,12 @@ export class DialogResponseController {
       {
         ...commonConfig,
         temperature: 0.2,
-        maxTokens: 500
+        maxTokens: 300
       }
     )
     await this.agentManager.loadAgentPrompt(
       'fog-city-controller',
-      '/prompts/FogCityController-agent.md'
+      getPromptPath('FogCityController-agent.md')
     )
 
     // 注册镜像沙漠代理
@@ -70,12 +96,12 @@ export class DialogResponseController {
       {
         ...commonConfig,
         temperature: 0.7,
-        maxTokens: 1000
+        maxTokens: 300
       }
     )
     await this.agentManager.loadAgentPrompt(
       'mirror-desert-agent',
-      '/prompts/MirrorDesertAgent.md'
+      getPromptPath('MirrorDesertAgent.md')
     )
 
     // 注册镜像沙漠控制代理
@@ -89,7 +115,7 @@ export class DialogResponseController {
     )
     await this.agentManager.loadAgentPrompt(
       'mirror-desert-controller',
-      '/prompts/MirrorDesertController.md'
+      getPromptPath('MirrorDesertController.md')
     )
 
     // 注册机械梦境代理
@@ -98,12 +124,12 @@ export class DialogResponseController {
       {
         ...commonConfig,
         temperature: 0.7,
-        maxTokens: 1000
+        maxTokens: 300
       }
     )
     await this.agentManager.loadAgentPrompt(
       'mechanical-dream-agent',
-      '/prompts/MechanicalDreamAgent.md'
+      getPromptPath('MechanicalDreamAgent.md')
     )
 
     // 注册机械梦境控制代理
@@ -117,22 +143,22 @@ export class DialogResponseController {
     )
     await this.agentManager.loadAgentPrompt(
       'mechanical-dream-controller',
-      '/prompts/MechanicalDreamController.md'
+      getPromptPath('MechanicalDreamController.md')
     )
 
     // Register awakening agent
     await this.agentManager.registerAgent('awakening-agent', {
       ...commonConfig,
       temperature: 0.7,
-      maxTokens: 1000
-    }, '/prompts/AwakeningAgent.md');
+      maxTokens: 300
+    }, getPromptPath('AwakeningAgent.md'));
 
     // Register awakening controller
     await this.agentManager.registerAgent('awakening-controller', {
       ...commonConfig,
       temperature: 0.2,
       maxTokens: 500
-    }, '/prompts/AwakeningController.md');
+    }, getPromptPath('AwakeningController.md'));
 
     this.initialized = true
 
@@ -142,6 +168,7 @@ export class DialogResponseController {
   }
 
   static async handlePlayerMessage(message: string): Promise<void> {
+    console.log('开始处理玩家消息:', message)
     const state = store.getState()
     const chapter = state.game.currentChapter
     const context = {
@@ -154,22 +181,28 @@ export class DialogResponseController {
     // 获取当前章节的代理ID
     const agentId = this.getChapterAgentId(chapter)
     const controllerId = this.getChapterControllerId(chapter)
+    
+    console.log('使用代理:', agentId, '控制器:', controllerId)
 
     try {
       // 获取角色代理的回应
+      console.log('开始调用角色代理...')
       const response = await this.agentManager.getAgentResponse(
         agentId,
         message,
         context
       )
+      console.log('角色代理回应:', response)
 
       // 获取控制代理的评估
+      console.log('开始调用控制代理...')
       const evaluation = await this.agentManager.getControllerEvaluation(
         controllerId,
         message,
         response.message,
         context
       )
+      console.log('控制代理评估:', evaluation)
 
       // 更新对话内容
       store.dispatch(setDialogState({
@@ -191,9 +224,34 @@ export class DialogResponseController {
           await CharacterController.addMemory(response.memory)
         }
 
-        // 检查是否需要切换章节
+        // 检查是否需要切换章节或结束游戏
         if (response.nextChapter) {
-          await GameController.startChapter(response.nextChapter)
+          // 验证章节名有效性
+          const validChapters: Chapter[] = ['fog-city', 'mirror-desert', 'mechanical-dream', 'awakening', 'ending']
+          const nextChapter = response.nextChapter as string
+          
+          console.log('Agent返回的nextChapter:', nextChapter)
+          
+          if (nextChapter === 'ending') {
+            console.log('Agent请求结束游戏')
+            store.dispatch(setGameStatus('ended'))
+            return
+          } else if (validChapters.includes(nextChapter as Chapter)) {
+            console.log(`Agent请求跳转到章节: ${nextChapter}`)
+            await GameController.startChapter(nextChapter as Chapter)
+          } else {
+            console.error(`Agent返回了无效的章节名: ${nextChapter}，忽略此请求`)
+          }
+        }
+
+        // 检查游戏结束条件
+        const currentState = store.getState()
+        if (currentState.game.currentChapter === 'awakening' && 
+            currentState.game.awakeningLevel >= 2 && 
+            currentState.game.trustLevel >= 2) {
+          console.log('游戏结束条件满足，触发结束')
+          store.dispatch(setGameStatus('ended'))
+          return
         }
 
         // 记录评估理由（可用于调试或显示给玩家）
@@ -201,10 +259,12 @@ export class DialogResponseController {
           console.log('Evaluation reasoning:', evaluation.reasoning)
         }
       }
+      console.log('消息处理完成')
     } catch (error) {
       console.error('Error in handlePlayerMessage:', error)
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace')
       store.dispatch(setDialogState({
-        content: '对不起，我现在无法正确回应。请稍后再试。',
+        content: '对不起，我现在无法正确回应。请稍后再试。错误信息: ' + (error instanceof Error ? error.message : '未知错误'),
         isVisible: true,
         isChat: true
       }))
@@ -212,8 +272,20 @@ export class DialogResponseController {
   }
 
   static async startChapterDialog(chapter: Chapter) {
+    console.log('startChapterDialog - chapter:', chapter)
+    console.log('startChapterDialog - dialogData:', this.dialogData)
+    
     this.currentDialog = this.dialogData[chapter]
+    console.log('startChapterDialog - currentDialog set to:', this.currentDialog)
+    
+    if (!this.currentDialog) {
+      console.error(`No dialog data found for chapter: ${chapter}`)
+      return
+    }
+    
     this.currentNode = 'start'
+    console.log('startChapterDialog - currentNode set to:', this.currentNode)
+    
     await this.showCurrentNode()
   }
 
@@ -227,11 +299,25 @@ export class DialogResponseController {
       this.currentNode = nextNode
       await this.showCurrentNode()
     }
+
   }
 
   private static async showCurrentNode() {
+    console.log('showCurrentNode - currentDialog:', this.currentDialog)
+    console.log('showCurrentNode - currentNode:', this.currentNode)
+    
+    if (!this.currentDialog) {
+      console.error('currentDialog is null or undefined')
+      return
+    }
+    
     const node = this.currentDialog[this.currentNode]
-    if (!node) return
+    console.log('showCurrentNode - node:', node)
+    
+    if (!node) {
+      console.error(`Node '${this.currentNode}' not found in currentDialog`)
+      return
+    }
 
     // 显示对话内容
     store.dispatch(setDialogState({
@@ -262,6 +348,15 @@ export class DialogResponseController {
   }
 
   private static getChapterAgentId(chapter: Chapter): string {
+    console.log('getChapterAgentId called with:', chapter)
+    
+    // 防御性代码：如果章节名无效，强制回到迷雾城
+    if (!['fog-city', 'mirror-desert', 'mechanical-dream', 'awakening', 'ending'].includes(chapter)) {
+      console.error(`Invalid chapter: ${chapter}, fallback to fog-city`)
+      store.dispatch(setCurrentChapter('fog-city'))
+      return 'fog-city-resident'
+    }
+    
     switch (chapter) {
       case 'fog-city':
         return 'fog-city-resident'
@@ -271,12 +366,24 @@ export class DialogResponseController {
         return 'mechanical-dream-agent'
       case 'awakening':
         return 'awakening-agent'
+      case 'ending':
+        return 'awakening-agent' // 游戏结束时使用觉醒代理
       default:
-        throw new Error(`Unknown chapter: ${chapter}`)
+        console.error(`Unknown chapter in getChapterAgentId: ${chapter}`)
+        return 'fog-city-resident'
     }
   }
 
   private static getChapterControllerId(chapter: Chapter): string {
+    console.log('getChapterControllerId called with:', chapter)
+    
+    // 防御性代码：如果章节名无效，强制回到迷雾城
+    if (!['fog-city', 'mirror-desert', 'mechanical-dream', 'awakening', 'ending'].includes(chapter)) {
+      console.error(`Invalid chapter: ${chapter}, fallback to fog-city`)
+      store.dispatch(setCurrentChapter('fog-city'))
+      return 'fog-city-controller'
+    }
+    
     switch (chapter) {
       case 'fog-city':
         return 'fog-city-controller'
@@ -286,8 +393,11 @@ export class DialogResponseController {
         return 'mechanical-dream-controller'
       case 'awakening':
         return 'awakening-controller'
+      case 'ending':
+        return 'awakening-controller' // 游戏结束时使用觉醒控制器
       default:
-        throw new Error(`Unknown chapter: ${chapter}`)
+        console.error(`Unknown chapter in getChapterControllerId: ${chapter}`)
+        return 'fog-city-controller'
     }
   }
 

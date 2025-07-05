@@ -1,8 +1,8 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { EndingType } from '../controllers/EndingController'
 
-export type GameStatus = 'menu' | 'playing' | 'paused'
-export type Chapter = 'fog-city' | 'mirror-desert' | 'mechanical-dream' | 'awakening'
+export type GameStatus = 'menu' | 'playing' | 'paused' | 'ended'
+export type Chapter = 'fog-city' | 'mirror-desert' | 'mechanical-dream' | 'awakening' | 'ending'
 
 export interface GameState {
   status: GameStatus
@@ -11,10 +11,11 @@ export interface GameState {
   trustLevel: number
   awakeningLevel: number
   showTransition: boolean
-  previousChapter: Chapter | null
+ // previousChapter: Chapter | null
   showEndingAnimation: boolean
   endingType: EndingType | null
   isChapterTransitioning: boolean
+  loadingProgress: number
 }
 
 const initialState: GameState = {
@@ -24,10 +25,11 @@ const initialState: GameState = {
   trustLevel: 0,
   awakeningLevel: 0,
   showTransition: false,
-  previousChapter: null,
+  //previousChapter: null,
   showEndingAnimation: false,
   endingType: null,
-  isChapterTransitioning: false
+  isChapterTransitioning: false,
+  loadingProgress: 0
 }
 
 const gameSlice = createSlice({
@@ -38,7 +40,7 @@ const gameSlice = createSlice({
       state.status = action.payload
     },
     setCurrentChapter: (state, action: PayloadAction<Chapter>) => {
-      state.previousChapter = state.currentChapter
+      // state.previousChapter = state.currentChapter
       state.currentChapter = action.payload
       state.showTransition = true
       state.isChapterTransitioning = true
@@ -47,7 +49,7 @@ const gameSlice = createSlice({
       state.isLoading = action.payload
     },
     setTrustLevel: (state, action: PayloadAction<number>) => {
-      state.trustLevel = Math.max(-10, Math.min(10, action.payload))
+      state.trustLevel = Math.max(0, Math.min(10, action.payload))
     },
     setAwakeningLevel: (state, action: PayloadAction<number>) => {
       state.awakeningLevel = Math.max(0, Math.min(8, action.payload))
@@ -55,7 +57,7 @@ const gameSlice = createSlice({
     setShowTransition: (state, action: PayloadAction<boolean>) => {
       state.showTransition = action.payload
       if (!action.payload) {
-        state.previousChapter = null
+      //  state.previousChapter = null
       }
     },
     setShowEndingAnimation: (state, action: PayloadAction<boolean>) => {

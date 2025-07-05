@@ -1,48 +1,71 @@
 import { store } from '../state/store'
-import { setCurrentChapter, setTrustLevel, setAwakeningLevel, Chapter } from '../state/gameSlice'
+import { setCurrentChapter, setTrustLevel, setAwakeningLevel, setGameStatus, Chapter } from '../state/gameSlice'
 import { DialogResponseController } from './DialogResponseController'
 import { EndingController, EndingType } from './EndingController'
 import { SaveController } from './SaveController'
 import { AudioController } from './AudioController'
+import { checkChapterTransition, checkEndingCondition } from '../config/chapterConfig'
 
 export class GameController {
   static async startNewGame(): Promise<void> {
+    console.log('GameController.startNewGame() 开始')
+    
     // 重置游戏状态
+    console.log('重置游戏状态到初始值')
     store.dispatch(setCurrentChapter('fog-city'))
     store.dispatch(setTrustLevel(0))
     store.dispatch(setAwakeningLevel(0))
     
+    console.log('当前游戏状态:', store.getState().game)
+    
     // 初始化对话系统
+    console.log('初始化对话系统...')
     await DialogResponseController.initialize()
     
     // 开始第一章对话
+    console.log('开始迷雾城章节对话...')
     await DialogResponseController.startChapterDialog('fog-city')
     
     // 播放第一章背景音乐
+    console.log('播放迷雾城背景音乐...')
     await AudioController.playChapterBGM('fog-city')
 
     // 创建初始存档
+    console.log('创建初始存档...')
     await SaveController.autoSave()
+    
+    console.log('GameController.startNewGame() 完成')
   }
 
   static async startChapter(chapter: Chapter): Promise<void> {
+    console.log(`GameController.startChapter(${chapter}) 开始`)
+    
     // 停止当前背景音乐
     await AudioController.stopBgm()
     
+    console.log(`设置当前章节为: ${chapter}`)
     store.dispatch(setCurrentChapter(chapter))
+    
+    console.log('章节设置后的游戏状态:', store.getState().game)
     
     if (chapter === 'awakening') {
       // 在最终章节中特别处理结局可能性
+      console.log('觉醒章节，检查结局可能性...')
       await this.checkEndingPossibility()
-    } else {
+    } else if (chapter !== 'ending') {
+      console.log(`开始${chapter}章节对话...`)
       await DialogResponseController.startChapterDialog(chapter)
     }
 
     // 播放新章节背景音乐
+    console.log(`播放${chapter}章节背景音乐...`)
     await AudioController.playChapterBGM(chapter)
 
     // 章节开始时自动存档
+    console.log('章节开始，自动存档...')
     await SaveController.autoSave()
+    
+    console.log(`GameController.startChapter(${chapter}) 完成`)
   }
 
   static async handleGameChoice(choiceId: string): Promise<void> {
@@ -63,28 +86,33 @@ export class GameController {
   static async updateGameState(trustChange: number, awakeningChange: number): Promise<void> {
     const state = store.getState()
     const newTrustLevel = Math.max(0, Math.min(10, state.game.trustLevel + trustChange))
-    const newAwakeningLevel = Math.max(0, Math.min(10, state.game.awakeningLevel + awakeningChange))
+    const newAwakeningLevel = Math.max(0, Math.min(8, state.game.awakeningLevel + awakeningChange))
 
     store.dispatch(setTrustLevel(newTrustLevel))
     store.dispatch(setAwakeningLevel(newAwakeningLevel))
 
-    // 检查章节转换条件
+    console.log(`状态更新: 信任度 ${state.game.trustLevel} -> ${newTrustLevel}, 觉醒值 ${state.game.awakeningLevel} -> ${newAwakeningLevel}`)
+
     const currentChapter = state.game.currentChapter
-    if (currentChapter === 'fog-city' && newTrustLevel >= 10 && newAwakeningLevel >= 10) {
-      // 重置状态并进入下一章
+
+    // 检查是否满足游戏结束条件
+    if (checkEndingCondition(currentChapter, newTrustLevel, newAwakeningLevel)) {
+      console.log('满足游戏结束条件')
+      store.dispatch(setGameStatus('ended'))
+      return
+    }
+
+    // 检查章节跳转条件
+    const nextChapter = checkChapterTransition(currentChapter, newTrustLevel, newAwakeningLevel)
+    if (nextChapter) {
+      console.log(`满足章节跳转条件: ${currentChapter} -> ${nextChapter}`)
+      
+      // 重置状态为0并进入下一章
+      console.log('重置信任度和觉醒值为0')
       store.dispatch(setTrustLevel(0))
       store.dispatch(setAwakeningLevel(0))
-      await this.startChapter('mirror-desert')
-    } else if (currentChapter === 'mirror-desert' && newTrustLevel >= 10 && newAwakeningLevel >= 10) {
-      // 重置状态并进入下一章
-      store.dispatch(setTrustLevel(0))
-      store.dispatch(setAwakeningLevel(0))
-      await this.startChapter('mechanical-dream')
-    } else if (currentChapter === 'mechanical-dream' && newTrustLevel >= 10 && newAwakeningLevel >= 10) {
-      // 重置状态并进入下一章
-      store.dispatch(setTrustLevel(0))
-      store.dispatch(setAwakeningLevel(0))
-      await this.startChapter('awakening')
+      
+      await this.startChapter(nextChapter)
     }
 
     // 状态变化后自动存档

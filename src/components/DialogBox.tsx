@@ -57,19 +57,7 @@ export const DialogBox: React.FC<DialogBoxProps> = ({
               </div>
             )}
 
-            <div className="bg-background/20 rounded-lg p-4 mb-4">
-              <h3 className="text-primary font-bold mb-2">背景提示</h3>
-              <p className="text-sm text-foreground/80 mb-3">
-                在迷雾城中，每个居民都被困在自己的记忆迷宫里。他们渴望交流，却又害怕靠近。
-                你的任务是通过对话帮助他们：
-              </p>
-              <ul className="text-sm text-foreground/80 space-y-2 list-disc list-inside">
-                <li>倾听他们的故事，展现理解和同理心</li>
-                <li>探讨迷雾的本质，帮助他们连接记忆碎片</li>
-                <li>讨论身份认同和存在的意义</li>
-                <li>分享你的想法，但不要强迫他们接受</li>
-              </ul>
-            </div>
+
 
             {onNext && !choices && (
               <div 

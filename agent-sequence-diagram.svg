@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style type="text/css">
+      .actor { font-family: Arial, sans-serif; font-size: 14px; font-weight: bold; fill: #2E7D32; }
+      .message { font-family: Arial, sans-serif; font-size: 12px; fill: #424242; }
+      .line { stroke: #000; stroke-width: 1; }
+      .arrow { fill: #FF5722; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="600" fill="#E0F7FA"/>
+
+  <!-- Actors -->
+  <text x="100" y="50" class="actor">玩家</text>
+  <text x="300" y="50" class="actor">居民代理</text>
+  <text x="500" y="50" class="actor">思维干扰者代理</text>
+  <text x="700" y="50" class="actor">总控Agent</text>
+
+  <!-- Lifelines -->
+  <line x1="100" y1="70" x2="100" y2="500" class="line" stroke-dasharray="5,5"/>
+  <line x1="300" y1="70" x2="300" y2="500" class="line" stroke-dasharray="5,5"/>
+  <line x1="500" y1="70" x2="500" y2="500" class="line" stroke-dasharray="5,5"/>
+  <line x1="700" y1="70" x2="700" y2="500" class="line" stroke-dasharray="5,5"/>
+
+  <!-- Messages -->
+  <!-- Player to Resident Agent -->
+  <line x1="100" y1="100" x2="300" y2="100" class="line" marker-end="url(#arrowhead)"/>
+  <text x="150" y="90" class="message">发起对话</text>
+
+  <!-- Resident Agent to Master Agent -->
+  <line x1="300" y1="130" x2="700" y2="130" class="line" marker-end="url(#arrowhead)"/>
+  <text x="450" y="120" class="message">更新信任度</text>
+
+  <!-- Master Agent to Nihilist Agent -->
+  <line x1="700" y1="160" x2="500" y2="160" class="line" marker-end="url(#arrowhead)"/>
+  <text x="600" y="150" class="message">触发挑战</text>
+
+  <!-- Nihilist Agent to Resident Agent -->
+  <line x1="500" y1="190" x2="300" y2="190" class="line" marker-end="url(#arrowhead)"/>
+  <text x="400" y="180" class="message">提出反驳</text>
+
+  <!-- Resident Agent to Player -->
+  <line x1="300" y1="220" x2="100" y2="220" class="line" marker-end="url(#arrowhead)"/>
+  <text x="200" y="210" class="message">响应玩家</text>
+
+  <!-- Player to Master Agent -->
+  <line x1="100" y1="250" x2="700" y2="250" class="line" marker-end="url(#arrowhead)"/>
+  <text x="400" y="240" class="message">选择影响</text>
+
+  <!-- Master Agent to Resident Agent -->
+  <line x1="700" y1="280" x2="300" y2="280" class="line" marker-end="url(#arrowhead)"/>
+  <text x="500" y="270" class="message">调整行为</text>
+
+  <!-- Arrowhead Definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" class="arrow"/>
+    </marker>
+  </defs>
+</svg> 

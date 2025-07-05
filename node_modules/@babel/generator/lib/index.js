@@ -3,7 +3,8 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = generate;
+exports.default = void 0;
+exports.generate = generate;
 var _sourceMap = require("./source-map.js");
 var _printer = require("./printer.js");
 function normalizeOptions(code, opts, ast) {
@@ -106,5 +107,6 @@ function generate(ast, opts = {}, code) {
   const printer = new _printer.default(format, map, ast.tokens, typeof code === "string" ? code : null);
   return printer.generate(ast);
 }
+var _default = exports.default = generate;
 
 //# sourceMappingURL=index.js.map
