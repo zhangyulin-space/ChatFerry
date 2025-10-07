@@ -1,13 +1,12 @@
 import { store } from '../state/store'
 import { setDialogState, addToHistory } from '../state/dialogSlice'
-import { AudioController } from './AudioController'
-import { Chapter } from '../state/gameSlice'
+import { setGameStatus, setCurrentChapter, Chapter } from '../state/gameSlice'
+import { AgentManager } from '../agents/AgentManager'
 import { GameController } from './GameController'
 import { CharacterController } from './CharacterController'
-import { AgentManager } from '../agents/AgentManager'
-import { DialogController } from './DialogController'
-import { setGameStatus, setCurrentChapter } from '../state/gameSlice'
-import { checkChapterTransition, checkEndingCondition } from '../config/chapterConfig'
+import { AudioController } from './AudioController'
+import { checkGameEndingCondition } from '../config/gameThresholds'
+import { ChapterSummaryController } from './ChapterSummaryController'
 
 // 环境判断与路径工?
 const isDev = process.env.NODE_ENV === 'development';
@@ -232,23 +231,42 @@ export class DialogResponseController {
           
           console.log('Agent返回的nextChapter:', nextChapter)
           
-          if (nextChapter === 'ending') {
+          // 特殊处理：在awakening章节中，忽略nextChapter请求，除非是ending
+          if (chapter === 'awakening' && nextChapter !== 'ending') {
+            console.log('在觉醒章节中，忽略章节转换请求:', nextChapter)
+            // 不执行章节转换，继续正常对话
+          } else if (nextChapter === 'ending') {
             console.log('Agent请求结束游戏')
             store.dispatch(setGameStatus('ended'))
             return
           } else if (validChapters.includes(nextChapter as Chapter)) {
             console.log(`Agent请求跳转到章节: ${nextChapter}`)
-            await GameController.startChapter(nextChapter as Chapter)
+            
+            // 获取当前状态
+            const currentState = store.getState()
+            const currentChapter = currentState.game.currentChapter
+            const trustLevel = currentState.game.trustLevel
+            const awakeningLevel = currentState.game.awakeningLevel
+            
+            // 使用新的章节转换逻辑
+            await GameController.performChapterTransitionWithSummary(
+              currentChapter, 
+              nextChapter as Chapter, 
+              trustLevel, 
+              awakeningLevel
+            )
           } else {
             console.error(`Agent返回了无效的章节名: ${nextChapter}，忽略此请求`)
           }
         }
 
-        // 检查游戏结束条件
+        // 检查游戏结束条件 - 使用统一配置系统
         const currentState = store.getState()
-        if (currentState.game.currentChapter === 'awakening' && 
-            currentState.game.awakeningLevel >= 2 && 
-            currentState.game.trustLevel >= 2) {
+        if (checkGameEndingCondition(
+          currentState.game.currentChapter,
+          currentState.game.trustLevel,
+          currentState.game.awakeningLevel
+        )) {
           console.log('游戏结束条件满足，触发结束')
           store.dispatch(setGameStatus('ended'))
           return

@@ -16,6 +16,8 @@ export interface GameState {
   endingType: EndingType | null
   isChapterTransitioning: boolean
   loadingProgress: number
+  showChapterSummary: boolean
+  summaryChapter: Chapter | null
 }
 
 const initialState: GameState = {
@@ -29,7 +31,9 @@ const initialState: GameState = {
   showEndingAnimation: false,
   endingType: null,
   isChapterTransitioning: false,
-  loadingProgress: 0
+  loadingProgress: 0,
+  showChapterSummary: false,
+  summaryChapter: null
 }
 
 const gameSlice = createSlice({
@@ -68,6 +72,12 @@ const gameSlice = createSlice({
     },
     setChapterTransitioning: (state, action: PayloadAction<boolean>) => {
       state.isChapterTransitioning = action.payload
+    },
+    setShowChapterSummary: (state, action: PayloadAction<boolean>) => {
+      state.showChapterSummary = action.payload
+    },
+    setSummaryChapter: (state, action: PayloadAction<Chapter | null>) => {
+      state.summaryChapter = action.payload
     }
   },
 })
@@ -81,7 +91,9 @@ export const {
   setShowTransition,
   setShowEndingAnimation,
   setEndingType,
-  setChapterTransitioning
+  setChapterTransitioning,
+  setShowChapterSummary,
+  setSummaryChapter
 } = gameSlice.actions
 
 export default gameSlice.reducer 

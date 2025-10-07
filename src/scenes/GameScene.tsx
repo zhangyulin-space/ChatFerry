@@ -23,6 +23,8 @@ import ChapterVideo from '../components/ChapterVideo'
 import { GameController } from '../game/controllers/GameController'
 import { GameIntroduction } from '../components/GameIntroduction'
 import GameEnding from '../components/GameEnding'
+import { ChapterSummary } from '../components/ChapterSummary'
+import { ChapterSummaryController } from '../game/controllers/ChapterSummaryController'
 
 interface GameSceneProps {
   onExitToMenu: () => void
@@ -197,6 +199,24 @@ export const GameScene: React.FC<GameSceneProps> = ({ onExitToMenu }) => {
       )}
 
       <ChatBox content={dialogState.content || ''} />
+
+      {/* 章节总结组件 */}
+      {gameState.showChapterSummary && gameState.summaryChapter && (
+        <ChapterSummary
+          isVisible={gameState.showChapterSummary}
+          currentChapter={gameState.summaryChapter}
+          onContinue={async () => {
+            if (!gameState.summaryChapter) {
+              return
+            }
+            // 使用ChapterSummaryController获取下一章节
+            const nextChapter = ChapterSummaryController.getNextChapter(gameState.summaryChapter)
+            await GameController.handleChapterSummaryContinue(nextChapter)
+          }}
+        />
+      )}
+      
+
 
       <SaveMenu
         isVisible={isSaveMenuOpen}

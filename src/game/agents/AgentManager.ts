@@ -2,6 +2,7 @@ import { Chapter } from '../state/gameSlice'
 import axios from 'axios'
 import fs from 'fs'
 import path from 'path'
+import { getControllerEvaluationPrompt } from '../config/gameThresholds'
 
 type ModelProvider = 'openai' | 'ollama' | 'anthropic' 
                    | 'gemini' | 'custom' | 'deepseek'|'openrouter'|'zhizengzeng'
@@ -334,9 +335,20 @@ ${message}
     }
 
     try {
-      return JSON.parse(response.content)
+      // 使用extractJSON方法来处理可能的非纯JSON响应
+      const jsonContent = this.extractJSON(response.content)
+      const parsed = JSON.parse(jsonContent)
+      
+      // 验证必要字段
+      if (!parsed.message) {
+        console.warn('Agent response missing message field, using raw content')
+        return { message: response.content }
+      }
+      
+      return parsed
     } catch (error) {
       console.error('Failed to parse agent response:', error)
+      console.error('Raw response content:', response.content)
       return { message: response.content }
     }
   }
@@ -378,13 +390,7 @@ ${agentResponse}
 信任度：${context.currentTrust}
 觉醒值：${context.currentAwakening}
 
-请以下面的格式返回评估结果（确保是有效的JSON）：
-{
-  "isRelevant": true/false,
-  "trustChange": number (-3 到 3),
-  "awakeningChange": number (0 到 3),
-  "reasoning": "评估理由"
-}`
+${getControllerEvaluationPrompt(context.chapter)}`
 
       const response = await this.callModel(evaluationPrompt, agent)
       

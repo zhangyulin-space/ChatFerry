@@ -4,11 +4,18 @@ import { DialogResponseController } from './DialogResponseController'
 import { EndingController, EndingType } from './EndingController'
 import { SaveController } from './SaveController'
 import { AudioController } from './AudioController'
+import { ChapterSummaryController } from './ChapterSummaryController'
 import { checkChapterTransition, checkEndingCondition } from '../config/chapterConfig'
+import { validateAndClampStateValues } from '../config/gameThresholds'
+import { ConfigManager } from '../config/ConfigManager'
 
 export class GameController {
   static async startNewGame(): Promise<void> {
     console.log('GameController.startNewGame() 开始')
+    
+    // 初始化游戏配置
+    console.log('初始化游戏配置...')
+    ConfigManager.initialize()
     
     // 重置游戏状态
     console.log('重置游戏状态到初始值')
@@ -51,7 +58,13 @@ export class GameController {
     if (chapter === 'awakening') {
       // 在最终章节中特别处理结局可能性
       console.log('觉醒章节，检查结局可能性...')
-      await this.checkEndingPossibility()
+      try {
+        await this.checkEndingPossibility()
+      } catch (error) {
+        console.error('检查结局可能性时出错，开始正常对话:', error)
+        // 如果检查结局失败，开始正常对话
+        await DialogResponseController.startChapterDialog(chapter)
+      }
     } else if (chapter !== 'ending') {
       console.log(`开始${chapter}章节对话...`)
       await DialogResponseController.startChapterDialog(chapter)
@@ -85,15 +98,19 @@ export class GameController {
 
   static async updateGameState(trustChange: number, awakeningChange: number): Promise<void> {
     const state = store.getState()
-    const newTrustLevel = Math.max(0, Math.min(10, state.game.trustLevel + trustChange))
-    const newAwakeningLevel = Math.max(0, Math.min(8, state.game.awakeningLevel + awakeningChange))
+    const currentChapter = state.game.currentChapter
+    
+    // 使用统一配置系统验证和限制状态值
+    const { trustLevel: newTrustLevel, awakeningLevel: newAwakeningLevel } = validateAndClampStateValues(
+      currentChapter,
+      state.game.trustLevel + trustChange,
+      state.game.awakeningLevel + awakeningChange
+    )
 
     store.dispatch(setTrustLevel(newTrustLevel))
     store.dispatch(setAwakeningLevel(newAwakeningLevel))
 
     console.log(`状态更新: 信任度 ${state.game.trustLevel} -> ${newTrustLevel}, 觉醒值 ${state.game.awakeningLevel} -> ${newAwakeningLevel}`)
-
-    const currentChapter = state.game.currentChapter
 
     // 检查是否满足游戏结束条件
     if (checkEndingCondition(currentChapter, newTrustLevel, newAwakeningLevel)) {
@@ -102,32 +119,143 @@ export class GameController {
       return
     }
 
-    // 检查章节跳转条件
-    const nextChapter = checkChapterTransition(currentChapter, newTrustLevel, newAwakeningLevel)
-    if (nextChapter) {
-      console.log(`满足章节跳转条件: ${currentChapter} -> ${nextChapter}`)
-      
-      // 重置状态为0并进入下一章
-      console.log('重置信任度和觉醒值为0')
-      store.dispatch(setTrustLevel(0))
-      store.dispatch(setAwakeningLevel(0))
-      
-      await this.startChapter(nextChapter)
+    // 检查章节总结条件（包括第四章节）
+    if (ChapterSummaryController.shouldShowSummary(currentChapter, newTrustLevel, newAwakeningLevel)) {
+      console.log(`满足章节总结条件: ${currentChapter}`)
+      ChapterSummaryController.showSummary(currentChapter)
+      return
+    }
+
+    // 特殊处理：在awakening章节中，不检查章节跳转条件
+    if (currentChapter === 'awakening') {
+      console.log('在觉醒章节中，跳过章节跳转检查')
+    } else {
+      // 检查章节跳转条件
+      const nextChapter = checkChapterTransition(currentChapter, newTrustLevel, newAwakeningLevel)
+      if (nextChapter) {
+        console.log(`满足章节跳转条件: ${currentChapter} -> ${nextChapter}`)
+        
+        // 执行章节转换（包含总结逻辑）
+        await this.performChapterTransitionWithSummary(currentChapter, nextChapter, newTrustLevel, newAwakeningLevel)
+      } else {
+        console.log('不满足章节跳转条件')
+      }
     }
 
     // 状态变化后自动存档
     await SaveController.autoSave()
   }
 
-  static async checkEndingPossibility(): Promise<void> {
-    const possibleEnding = await EndingController.checkEndingConditions()
+  /**
+   * 执行章节转换（包含总结逻辑）
+   * @param currentChapter 当前章节
+   * @param nextChapter 下一章节
+   * @param trustLevel 当前信任度
+   * @param awakeningLevel 当前觉醒值
+   */
+  static async performChapterTransitionWithSummary(
+    currentChapter: Chapter, 
+    nextChapter: Chapter, 
+    trustLevel: number, 
+    awakeningLevel: number
+  ): Promise<void> {
+    console.log(`执行章节转换（含总结）: ${currentChapter} -> ${nextChapter}`)
     
-    if (possibleEnding) {
-      // 确认玩家是否准备好结束游戏
-      await DialogResponseController.handleResponse('awakening', 'confirm_ending')
+    // 检查是否应该显示章节总结
+    if (ChapterSummaryController.shouldShowSummary(currentChapter, trustLevel, awakeningLevel)) {
+      console.log('显示章节总结，暂停章节转换')
+      ChapterSummaryController.showSummary(currentChapter)
+      // 不在这里执行章节转换，等待玩家点击继续
+    } else {
+      console.log('不满足总结条件，直接执行章节转换')
+      await this.performChapterTransition(nextChapter)
+    }
+  }
+
+  /**
+   * 执行章节转换
+   * @param nextChapter 下一章节
+   */
+  static async performChapterTransition(nextChapter: Chapter): Promise<void> {
+    console.log(`执行章节转换: ${nextChapter}`)
+    
+    // 重置状态为0并进入下一章
+    console.log('重置信任度和觉醒值为0')
+    store.dispatch(setTrustLevel(0))
+    store.dispatch(setAwakeningLevel(0))
+    
+    // 清空对话内容
+    console.log('清空对话内容')
+    store.dispatch({
+      type: 'dialog/clearHistory'
+    })
+    store.dispatch({
+      type: 'dialog/clearMessages'
+    })
+    store.dispatch({
+      type: 'dialog/setDialogState',
+      payload: {
+        content: '',
+        character: null,
+        choices: [],
+        isVisible: false,
+        isChat: false
+      }
+    })
+    
+    await this.startChapter(nextChapter)
+  }
+
+  /**
+   * 处理章节总结继续
+   * @param nextChapter 下一章节
+   */
+  static async handleChapterSummaryContinue(nextChapter: Chapter): Promise<void> {
+    console.log(`章节总结继续，前往下一章: ${nextChapter}`)
+    
+    // 隐藏章节总结
+    ChapterSummaryController.hideSummary()
+    
+    // 特殊处理：如果下一章是ending，直接触发结局
+    if (nextChapter === 'ending') {
+      console.log('第四章节总结完成，触发结局')
+      store.dispatch(setGameStatus('ended'))
+      return
+    }
+    
+    // 执行章节转换
+    await this.performChapterTransition(nextChapter)
+    
+    // 状态变化后自动存档
+    await SaveController.autoSave()
+  }
+
+  static async checkEndingPossibility(): Promise<void> {
+    try {
+      const possibleEnding = await EndingController.checkEndingConditions()
       
-      // 如果玩家确认，开始结局转换
-      await EndingController.startEndingTransition(possibleEnding)
+      if (possibleEnding) {
+        console.log('检测到可能的结局:', possibleEnding)
+        // 确认玩家是否准备好结束游戏
+        try {
+          await DialogResponseController.handleResponse('awakening', 'confirm_ending')
+        } catch (error) {
+          console.error('处理结局确认时出错:', error)
+          // 如果处理失败，直接开始结局转换
+          await EndingController.startEndingTransition(possibleEnding)
+        }
+        
+        // 如果玩家确认，开始结局转换
+        await EndingController.startEndingTransition(possibleEnding)
+      } else {
+        console.log('未检测到可能的结局，开始正常对话')
+        // 如果没有检测到结局，开始正常对话
+        await DialogResponseController.startChapterDialog('awakening')
+      }
+    } catch (error) {
+      console.error('检查结局可能性时出错:', error)
+      // 如果检查失败，开始正常对话
+      await DialogResponseController.startChapterDialog('awakening')
     }
   }
 
